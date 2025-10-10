@@ -17,30 +17,14 @@ if [ "$UNPUSHED" -gt 0 ]; then
   echo "Recent unpushed commits:"
   git log @{u}.. --oneline --max-count=5 2>/dev/null
   echo ""
-
-  # Prompt for immediate push
-  echo -n "Push to GitHub now? (Y/n): "
-  read -r response
-
-  if [[ "$response" =~ ^[Yy]?$ ]] || [[ -z "$response" ]]; then
-    echo ""
-    echo "🚀 Pushing to GitHub..."
-    git push origin main || {
-      echo ""
-      echo "❌ Push failed!"
-      echo "   Please push manually: git push origin main"
-      exit 0  # Don't fail the commit
-    }
-    echo ""
-    echo "✅ Successfully pushed to GitHub!"
-  else
-    echo ""
-    echo "⚠️  IMPORTANT: Remember to push before ending your session!"
-    echo "   Run: git push origin main"
-  fi
+  echo "🚨 IMPORTANT: Run 'git push origin main' to push to GitHub!"
+  echo ""
 else
   echo "✅ All commits are already pushed to remote"
 fi
 
-echo ""
 echo "============================================================"
+echo ""
+
+# Always exit 0 so commit is not blocked
+exit 0
