@@ -15,6 +15,11 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@ag-ui/core": "^0.0.39",
+    "@ai-sdk/anthropic": "^2.0.25",
+    "@ai-sdk/google": "^2.0.18",
+    "@ai-sdk/mistral": "^2.0.18",
+    "@ai-sdk/openai": "^2.0.46",
     "@clerk/nextjs": "^6.33.3",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -47,6 +52,7 @@
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.75.0",
     "@upstash/redis": "^1.35.5",
+    "ai": "^5.0.65",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
