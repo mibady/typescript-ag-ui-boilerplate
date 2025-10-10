@@ -33,20 +33,28 @@ export function PortableText({ content }: PortableTextProps) {
     return null;
   }
 
+  // Track heading index for IDs
+  let headingIndex = 0;
+
   return (
     <div className="prose prose-gray dark:prose-invert max-w-none">
-      {content.map((block) => renderBlock(block))}
+      {content.map((block) => {
+        if (block._type === 'block' && block.style?.match(/^h[2-4]$/)) {
+          return renderBlock(block, headingIndex++);
+        }
+        return renderBlock(block);
+      })}
     </div>
   );
 }
 
-function renderBlock(block: PortableTextBlock) {
+function renderBlock(block: PortableTextBlock, headingIndex?: number) {
   const { _type, _key } = block;
 
   // Handle different block types
   switch (_type) {
     case 'block':
-      return renderTextBlock(block);
+      return renderTextBlock(block, headingIndex);
     case 'image':
       return renderImage(block);
     default:
@@ -54,7 +62,7 @@ function renderBlock(block: PortableTextBlock) {
   }
 }
 
-function renderTextBlock(block: PortableTextBlock) {
+function renderTextBlock(block: PortableTextBlock, headingIndex?: number) {
   const { style = 'normal', children = [], _key, markDefs = [], listItem } = block;
 
   if (!children || children.length === 0) {
@@ -102,16 +110,19 @@ function renderTextBlock(block: PortableTextBlock) {
     );
   }
 
+  // Generate ID for headings (for table of contents)
+  const headingId = headingIndex !== undefined ? `heading-${headingIndex}` : undefined;
+
   // Handle headings and paragraphs
   switch (style) {
     case 'h1':
-      return <h1 key={_key} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+      return <h1 key={_key} id={headingId} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
     case 'h2':
-      return <h2 key={_key} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+      return <h2 key={_key} id={headingId} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
     case 'h3':
-      return <h3 key={_key} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+      return <h3 key={_key} id={headingId} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
     case 'h4':
-      return <h4 key={_key} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+      return <h4 key={_key} id={headingId} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
     case 'h5':
       return <h5 key={_key} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
     case 'h6':
