@@ -1,0 +1,63 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Running pre-push quality gates..."
+echo ""
+
+# Run tests
+echo "📋 Step 1: Running Tests"
+echo "------------------------------------------------------------"
+if [ -f "package.json" ] && grep -q "\"test\"" package.json; then
+  npm test || {
+    echo ""
+    echo "❌ Tests failed. Cannot push."
+    echo "   Fix failing tests or use 'git push --no-verify' to skip (not recommended)"
+    exit 1
+  }
+  echo "✅ Tests passed"
+  echo ""
+else
+  echo "⚠️  No test script found. Skipping tests."
+  echo ""
+fi
+
+# Run build
+echo "📋 Step 2: Running Build"
+echo "------------------------------------------------------------"
+if [ -f "package.json" ] && grep -q "\"build\"" package.json; then
+  npm run build || {
+    echo ""
+    echo "❌ Build failed. Cannot push."
+    echo "   Fix build errors or use 'git push --no-verify' to skip (not recommended)"
+    exit 1
+  }
+  echo "✅ Build successful"
+  echo ""
+else
+  echo "⚠️  No build script found. Skipping build."
+  echo ""
+fi
+
+# Run CodeRabbit branch review
+if command -v coderabbit &> /dev/null; then
+  echo "📋 Step 3: CodeRabbit Branch Review"
+  echo "------------------------------------------------------------"
+  
+  coderabbit review --branch || {
+    echo ""
+    echo "⚠️  CodeRabbit found issues in branch."
+    echo "   Review the issues before pushing."
+    echo ""
+    echo "Continue anyway? (y/n)"
+    read -r response
+    if [[ ! "$response" =~ ^[Yy]$ ]]; then
+      echo "Push cancelled."
+      exit 1
+    fi
+  }
+  
+  echo "✅ CodeRabbit branch review passed"
+  echo ""
+fi
+
+echo "✅ All pre-push checks passed!"

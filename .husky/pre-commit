@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🐰 Running pre-commit quality gates..."
+echo ""
+
+# Run CodeRabbit review on staged changes
+if command -v coderabbit &> /dev/null; then
+  echo "📋 Step 1: CodeRabbit Review (Staged Changes)"
+  echo "------------------------------------------------------------"
+  
+  coderabbit review --staged || {
+    echo ""
+    echo "❌ CodeRabbit found blocking issues in staged changes."
+    echo "   Fix the issues or use 'git commit --no-verify' to skip (not recommended)"
+    exit 1
+  }
+  
+  echo "✅ CodeRabbit review passed"
+  echo ""
+else
+  echo "⚠️  CodeRabbit CLI not installed. Skipping review."
+  echo "   Install: curl -fsSL https://cli.coderabbit.ai/install.sh | sh"
+  echo ""
+fi
+
+# Check for large commits (>15 files)
+STAGED_FILES=$(git diff --cached --name-only | wc -l)
+if [ "$STAGED_FILES" -gt 15 ]; then
+  echo "⚠️  Warning: Committing $STAGED_FILES files (>15 limit)"
+  echo "   Consider breaking this into smaller commits"
+  echo ""
+  echo "Continue anyway? (y/n)"
+  read -r response
+  if [[ ! "$response" =~ ^[Yy]$ ]]; then
+    echo "Commit cancelled."
+    exit 1
+  fi
+fi
+
+echo "✅ Pre-commit checks passed!"

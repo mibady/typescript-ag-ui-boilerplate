@@ -5,9 +5,12 @@ import {
   emitMessageStart,
   emitMessageDelta,
   emitMessageComplete,
+  emitToolCallStart,
+  emitToolCallComplete,
   emitError,
   emitComplete,
 } from '../agui-events';
+import { createMCPClient, type MCPClient, type MCPToolResult } from '../mcp';
 
 export interface AgentConfig {
   provider?: LLMProvider;
@@ -33,7 +36,7 @@ export interface AgentResponse {
 
 /**
  * Base Agent class
- * Provides core functionality for AI agent execution
+ * Provides core functionality for AI agent execution with MCP tool support
  */
 export class BaseAgent {
   protected config: {
@@ -44,6 +47,7 @@ export class BaseAgent {
     systemPrompt: string;
   };
   protected agentType: string;
+  protected mcpClient?: MCPClient;
 
   constructor(agentType: string, config: AgentConfig = {}) {
     this.agentType = agentType;
@@ -59,6 +63,66 @@ export class BaseAgent {
   }
 
   /**
+   * Initialize MCP client for tool execution
+   */
+  protected initializeMCPClient(context: AgentExecutionContext): void {
+    this.mcpClient = createMCPClient({
+      userId: context.userId,
+      organizationId: context.organizationId,
+      sessionId: context.sessionId,
+    });
+  }
+
+  /**
+   * Execute an MCP tool
+   */
+  protected async executeTool(
+    toolName: string,
+    args: Record<string, unknown>,
+    sessionId: string
+  ): Promise<MCPToolResult> {
+    if (!this.mcpClient) {
+      return {
+        success: false,
+        error: 'MCP client not initialized',
+      };
+    }
+
+    try {
+      // Emit tool call start event
+      await emitToolCallStart(sessionId, toolName, args);
+
+      // Execute tool
+      const result = await this.mcpClient.executeTool(toolName, args);
+
+      // Emit tool call complete event
+      await emitToolCallComplete(sessionId, toolName, result);
+
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorResult: MCPToolResult = {
+        success: false,
+        error: errorMessage,
+      };
+
+      await emitToolCallComplete(sessionId, toolName, errorResult);
+      return errorResult;
+    }
+  }
+
+  /**
+   * Get available tools from MCP
+   */
+  protected getAvailableTools(): string[] {
+    if (!this.mcpClient) {
+      return [];
+    }
+
+    return this.mcpClient.getAvailableTools().map(tool => tool.name);
+  }
+
+  /**
    * Execute agent with streaming response
    */
   async executeStream(
@@ -69,6 +133,9 @@ export class BaseAgent {
     const startTime = Date.now();
 
     try {
+      // Initialize MCP client for tool execution
+      this.initializeMCPClient(context);
+
       // Get language model
       const model = createLanguageModel(
         this.config.provider,
@@ -153,6 +220,9 @@ export class BaseAgent {
     const startTime = Date.now();
 
     try {
+      // Initialize MCP client for tool execution
+      this.initializeMCPClient(context);
+
       // Get language model
       const model = createLanguageModel(
         this.config.provider,

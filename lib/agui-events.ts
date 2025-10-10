@@ -184,6 +184,10 @@ export async function emitToolComplete(
   );
 }
 
+// Aliases for consistency
+export const emitToolCallStart = emitToolStart;
+export const emitToolCallComplete = emitToolComplete;
+
 /**
  * Emit message start event
  */
