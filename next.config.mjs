@@ -2,7 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    typedRoutes: true,
+    // Temporarily disabled until all Phase 5 routes are built
+    // typedRoutes: true,
   },
   images: {
     domains: ['images.unsplash.com', 'cdn.sanity.io'],
