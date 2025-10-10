@@ -53,3 +53,6 @@ export function createAdminSupabaseClient() {
     }
   );
 }
+
+// Alias for compatibility with RAG system
+export const createClient = createServerSupabaseClient;

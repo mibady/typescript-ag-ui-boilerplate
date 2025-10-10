@@ -2,10 +2,11 @@
  * Search Tool
  *
  * Provides web and document search capabilities.
- * Integrates with Brave Search API or fallback to basic search.
+ * Integrates with Brave Search API and RAG system for document search.
  */
 
 import { MCPTool, MCPToolResult, MCPToolExecutionContext, SearchToolArgs } from '../types';
+import { searchSimilarChunks } from '@/lib/rag';
 
 /**
  * Search Tool Implementation
@@ -121,19 +122,46 @@ async function performDocumentSearch(
   limit: number,
   context: MCPToolExecutionContext
 ): Promise<MCPToolResult> {
-  // This will be implemented in Phase 4 with RAG system
-  // For now, return placeholder
-  return {
-    success: true,
-    data: {
-      query,
-      results: [],
-      count: 0,
-      message: 'Document search will be available in Phase 4 (RAG system)',
-    },
-    metadata: {
-      searchType: 'documents',
-      organizationId: context.organizationId,
-    },
-  };
+  try {
+    // Perform semantic search using RAG system
+    const searchResults = await searchSimilarChunks(query, context.organizationId, {
+      threshold: 0.7,
+      limit: limit,
+      includeDocumentMetadata: true,
+    });
+
+    // Format results for tool output
+    const results = searchResults.map((result) => ({
+      documentId: result.documentId,
+      documentName: result.documentMetadata?.name || 'Unknown',
+      content: result.content,
+      chunkIndex: result.chunkIndex,
+      similarity: result.similarity,
+      relevancePercentage: (result.similarity * 100).toFixed(1) + '%',
+    }));
+
+    return {
+      success: true,
+      data: {
+        query,
+        results,
+        count: results.length,
+      },
+      metadata: {
+        searchType: 'documents',
+        organizationId: context.organizationId,
+        threshold: 0.7,
+        averageSimilarity:
+          results.length > 0
+            ? (results.reduce((sum, r) => sum + r.similarity, 0) / results.length).toFixed(3)
+            : 0,
+      },
+    };
+  } catch (error) {
+    console.error('Document search error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Document search failed',
+    };
+  }
 }
