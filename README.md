@@ -1,5 +1,7 @@
 # TypeScript Stack Boilerplate - AI-First Multi-Tenant SaaS
 
+**🚨 AI DEVELOPERS: Read [AGENT-CONTEXT-RULES.md](./AGENT-CONTEXT-RULES.md) FIRST before any work**
+
 Production-ready boilerplate for building AI-powered SaaS applications with multi-tenancy, real-time streaming, and comprehensive features.
 
 ## 🎯 Features
