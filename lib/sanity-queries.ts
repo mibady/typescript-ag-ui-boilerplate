@@ -24,6 +24,9 @@ export interface BlogPost {
   };
   author: {
     name: string;
+    bio?: string;
+    twitter?: string;
+    linkedin?: string;
     image?: {
       asset: {
         _ref: string;
@@ -32,7 +35,7 @@ export interface BlogPost {
     };
   };
   categories?: string[];
-  body: any[];
+  body?: any[];
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
@@ -61,34 +64,39 @@ export interface Documentation {
  * Fetch all blog posts (paginated)
  */
 export async function getAllPosts(limit = 10, offset = 0): Promise<BlogPost[]> {
-  const query = `*[_type == "post"] | order(publishedAt desc) [${offset}...${offset + limit}] {
-    _id,
-    title,
-    slug,
-    excerpt,
-    publishedAt,
-    mainImage {
-      asset-> {
-        _id,
-        _ref,
-        _type
-      },
-      alt
-    },
-    author-> {
-      name,
-      image {
+  try {
+    const query = `*[_type == "post"] | order(publishedAt desc) [${offset}...${offset + limit}] {
+      _id,
+      title,
+      slug,
+      excerpt,
+      publishedAt,
+      mainImage {
         asset-> {
           _id,
           _ref,
           _type
+        },
+        alt
+      },
+      author-> {
+        name,
+        image {
+          asset-> {
+            _id,
+            _ref,
+            _type
+          }
         }
-      }
-    },
-    categories
-  }`;
+      },
+      categories
+    }`;
 
-  return sanityClient.fetch(query);
+    return await sanityClient.fetch(query);
+  } catch (error) {
+    console.error('Error fetching blog posts:', error);
+    return [];
+  }
 }
 
 /**
@@ -144,25 +152,44 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
  * Fetch total count of blog posts
  */
 export async function getPostCount(): Promise<number> {
-  const query = `count(*[_type == "post"])`;
-  return sanityClient.fetch(query);
+  try {
+    const query = `count(*[_type == "post"])`;
+    return await sanityClient.fetch(query);
+  } catch (error) {
+    console.error('Error fetching post count:', error);
+    return 0;
+  }
 }
 
 /**
  * Fetch recent posts for sidebar/related content
  */
 export async function getRecentPosts(limit = 5): Promise<BlogPost[]> {
-  const query = `*[_type == "post"] | order(publishedAt desc) [0...${limit}] {
-    _id,
-    title,
-    slug,
-    publishedAt,
-    author-> {
-      name
-    }
-  }`;
+  try {
+    const query = `*[_type == "post"] | order(publishedAt desc) [0...${limit}] {
+      _id,
+      title,
+      slug,
+      excerpt,
+      publishedAt,
+      mainImage {
+        asset-> {
+          _id,
+          _ref,
+          _type
+        },
+        alt
+      },
+      author-> {
+        name
+      }
+    }`;
 
-  return sanityClient.fetch(query);
+    return await sanityClient.fetch(query);
+  } catch (error) {
+    console.error('Error fetching recent posts:', error);
+    return [];
+  }
 }
 
 /**
