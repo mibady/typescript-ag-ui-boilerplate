@@ -98,7 +98,7 @@ export async function searchSimilarChunks(
     const supabase = await createClient();
 
     // Build the RPC call to the similarity search function
-    let rpcCall = supabase.rpc('match_document_chunks', {
+    const rpcCall = supabase.rpc('match_document_chunks', {
       query_embedding: queryEmbedding,
       match_threshold: threshold,
       match_count: limit,
