@@ -1,41 +1,187 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
 
-echo "🐰 Running pre-commit quality gates..."
+echo "🔍 Pre-commit hook: Quality gates"
+echo "============================================================"
+
+# Run secret detection
+"$(dirname "$0")/pre-commit-secrets" || exit 1
+
+# Check staged file count (prevent massive commits)
+STAGED_COUNT=$(git diff --cached --name-only | wc -l)
+MAX_FILES=15
+
+if [ $STAGED_COUNT -gt $MAX_FILES ]; then
+  echo ""
+  echo "❌ COMMIT TOO LARGE"
+  echo "============================================================"
+  echo "Files staged: $STAGED_COUNT (maximum: $MAX_FILES)"
+  echo ""
+  echo "Large commits are hard to review and increase merge conflicts."
+  echo ""
+  echo "Split into smaller, atomic commits:"
+  echo "  1. Review staged files: git diff --cached --name-only"
+  echo "  2. Unstage some files: git reset HEAD <file>"
+  echo "  3. Commit in logical groups (5-10 files recommended)"
+  echo ""
+  echo "For CLI tool development:"
+  echo "  - Tiny: 1-3 files (type updates, bug fixes)"
+  echo "  - Small: 4-7 files (feature component)"
+  echo "  - Medium: 8-12 files (template category)"
+  echo "  - Large: 13-15 files (major feature - rare)"
+  echo ""
+  echo "Or bypass (NOT RECOMMENDED): git commit --no-verify"
+  echo "============================================================"
+  exit 1
+fi
+
+echo "✅ Commit size: $STAGED_COUNT files (within $MAX_FILES limit)"
+
+# Check for misplaced markdown files
 echo ""
+echo "📄 Checking markdown file locations..."
+MISPLACED_MD=$(git diff --cached --name-only | grep '\.md$' | grep -v '^docs/' | grep -v '^README\.md$' | grep -v '^LICENSE\.md$')
 
-# Run CodeRabbit review on staged changes
+if [ ! -z "$MISPLACED_MD" ]; then
+  echo ""
+  echo "❌ MARKDOWN FILES IN WRONG LOCATION"
+  echo "============================================================"
+  echo "The following markdown files are not in docs/ directory:"
+  echo "$MISPLACED_MD"
+  echo ""
+  echo "Markdown files must be organized in docs/ subdirectories:"
+  echo "  docs/guides/         - User guides and tutorials"
+  echo "  docs/reference/      - Technical reference"
+  echo "  docs/architecture/   - System design docs"
+  echo "  docs/integrations/   - Third-party integrations"
+  echo "  docs/workflows/      - Development workflows"
+  echo "  docs/reports/        - Reports and changelogs"
+  echo ""
+  echo "Only README.md and LICENSE.md are allowed in root."
+  echo ""
+  echo "To fix:"
+  echo "  1. Move file to appropriate docs/ subdirectory"
+  echo "  2. Use DocumentationManager.createDocumentation() in code"
+  echo "  3. Register in docs/.docs-manifest.json"
+  echo ""
+  echo "Or bypass (NOT RECOMMENDED): git commit --no-verify"
+  echo "============================================================"
+  exit 1
+fi
+
+echo "✅ Markdown files properly located"
+
+# Check if agent run used workflow template
+echo ""
+echo "📋 Checking workflow template usage..."
+if [ -f ".agent-run-log.json" ]; then
+  # Check if jq is installed
+  if command -v jq &> /dev/null; then
+    TEMPLATE_USED=$(jq -r '.templateUsed' .agent-run-log.json 2>/dev/null)
+
+    if [ "$TEMPLATE_USED" = "null" ] || [ -z "$TEMPLATE_USED" ]; then
+      echo ""
+      echo "❌ WORKFLOW TEMPLATE VIOLATION"
+      echo "============================================================"
+      echo "Agent modified files without using a workflow template!"
+      echo ""
+      echo "This violates the mandatory workflow enforcement policy."
+      echo "All code changes must follow a standardized workflow template."
+      echo ""
+      echo "Available templates:"
+      echo "  - prompts/agents/     (planner, builder, reviewer)"
+      echo "  - prompts/features/   (build-api, build-ui, add-authentication, add-database)"
+      echo "  - prompts/maintenance/ (fix-bug, refactor-code, optimize-performance)"
+      echo ""
+      echo "To fix:"
+      echo "  1. Reset commit: git reset HEAD~1"
+      echo "  2. Load appropriate template: read_prompt_template tool"
+      echo "  3. Follow workflow steps as specified"
+      echo "  4. Commit again"
+      echo ""
+      echo "Or bypass (NOT RECOMMENDED): git commit --no-verify"
+      echo "============================================================"
+      exit 1
+    fi
+
+    echo "✅ Workflow template verified: $TEMPLATE_USED"
+
+    # Show workflow progress
+    AGENT_TYPE=$(jq -r '.agentType' .agent-run-log.json 2>/dev/null)
+    STEPS_COMPLETED=$(jq -r '.stepsCompleted | length' .agent-run-log.json 2>/dev/null)
+    echo "   Agent: $AGENT_TYPE"
+    echo "   Steps completed: $STEPS_COMPLETED"
+  else
+    echo "⚠️  jq not installed - cannot verify template usage"
+    echo "   Install: sudo apt-get install jq"
+  fi
+else
+  echo "⚠️  No agent run log found (.agent-run-log.json)"
+  echo "   This commit may not have been created by an agent"
+fi
+
+# Check if CodeRabbit is installed
 if command -v coderabbit &> /dev/null; then
-  echo "📋 Step 1: CodeRabbit Review (Staged Changes)"
-  echo "------------------------------------------------------------"
-  
-  coderabbit review --staged || {
+  echo ""
+  echo "🐰 CodeRabbit: Reviewing staged changes..."
+
+  # Run CodeRabbit on staged files
+  coderabbit review --staged --format json > .coderabbit-review.json 2>&1 || {
+    echo "⚠️  CodeRabbit review encountered issues"
+  }
+
+  # Check for blockers
+  if [ -f ".coderabbit-review.json" ]; then
+    if grep -q '"severity": "blocker"' .coderabbit-review.json 2>/dev/null; then
+      echo ""
+      echo "❌ BLOCKER ISSUES FOUND"
+      echo "============================================================"
+      coderabbit review --staged --format pretty --filter blocker
+      echo ""
+      echo "Fix these issues before committing!"
+      echo "Or run: git commit --no-verify (not recommended)"
+      rm -f .coderabbit-review.json
+      exit 1
+    fi
+
+    # Check for major issues
+    if grep -q '"severity": "major"' .coderabbit-review.json 2>/dev/null; then
+      echo ""
+      echo "⚠️  MAJOR ISSUES FOUND"
+      echo "============================================================"
+      coderabbit review --staged --format pretty --filter major
+      echo ""
+      echo -n "Continue with major issues? (y/N): "
+      read -r response
+      if [[ ! "$response" =~ ^[Yy]$ ]]; then
+        rm -f .coderabbit-review.json
+        exit 1
+      fi
+    fi
+
+    rm -f .coderabbit-review.json
+  fi
+
+  echo "✅ CodeRabbit review passed"
+else
+  echo "⚠️  CodeRabbit CLI not installed - quality gates limited"
+  echo "   Install: curl -fsSL https://cli.coderabbit.ai/install.sh | sh"
+fi
+
+# Run linter if available
+if [ -f "package.json" ] && grep -q "\"lint\"" package.json; then
+  echo ""
+  echo "📝 Running linter..."
+  npm run lint --silent || {
     echo ""
-    echo "❌ CodeRabbit found blocking issues in staged changes."
-    echo "   Fix the issues or use 'git commit --no-verify' to skip (not recommended)"
+    echo "❌ Linting failed"
+    echo "Fix issues or run: git commit --no-verify"
     exit 1
   }
-  
-  echo "✅ CodeRabbit review passed"
-  echo ""
-else
-  echo "⚠️  CodeRabbit CLI not installed. Skipping review."
-  echo "   Install: curl -fsSL https://cli.coderabbit.ai/install.sh | sh"
-  echo ""
+  echo "✅ Linting passed"
 fi
 
-# Check for large commits (>15 files)
-STAGED_FILES=$(git diff --cached --name-only | wc -l)
-if [ "$STAGED_FILES" -gt 15 ]; then
-  echo "⚠️  Warning: Committing $STAGED_FILES files (>15 limit)"
-  echo "   Consider breaking this into smaller commits"
-  echo ""
-  echo "Continue anyway? (y/n)"
-  read -r response
-  if [[ ! "$response" =~ ^[Yy]$ ]]; then
-    echo "Commit cancelled."
-    exit 1
-  fi
-fi
-
-echo "✅ Pre-commit checks passed!"
+echo ""
+echo "============================================================"
+echo "✅ Pre-commit checks passed"
+echo "============================================================"

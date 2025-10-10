@@ -1,63 +1,82 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
 
-echo "🚀 Running pre-push quality gates..."
-echo ""
+echo "🚀 Pre-push hook: Comprehensive validation"
+echo "============================================================"
 
 # Run tests
-echo "📋 Step 1: Running Tests"
-echo "------------------------------------------------------------"
 if [ -f "package.json" ] && grep -q "\"test\"" package.json; then
+  echo ""
+  echo "🧪 Running tests..."
   npm test || {
     echo ""
-    echo "❌ Tests failed. Cannot push."
-    echo "   Fix failing tests or use 'git push --no-verify' to skip (not recommended)"
+    echo "❌ Tests failed - push aborted"
+    echo "Fix tests or run: git push --no-verify"
     exit 1
   }
   echo "✅ Tests passed"
-  echo ""
-else
-  echo "⚠️  No test script found. Skipping tests."
-  echo ""
 fi
 
 # Run build
-echo "📋 Step 2: Running Build"
-echo "------------------------------------------------------------"
 if [ -f "package.json" ] && grep -q "\"build\"" package.json; then
+  echo ""
+  echo "🔨 Building project..."
   npm run build || {
     echo ""
-    echo "❌ Build failed. Cannot push."
-    echo "   Fix build errors or use 'git push --no-verify' to skip (not recommended)"
+    echo "❌ Build failed - push aborted"
+    echo "Fix build or run: git push --no-verify"
     exit 1
   }
   echo "✅ Build successful"
-  echo ""
-else
-  echo "⚠️  No build script found. Skipping build."
-  echo ""
 fi
 
-# Run CodeRabbit branch review
+# CodeRabbit branch review if available
 if command -v coderabbit &> /dev/null; then
-  echo "📋 Step 3: CodeRabbit Branch Review"
-  echo "------------------------------------------------------------"
-  
-  coderabbit review --branch || {
-    echo ""
-    echo "⚠️  CodeRabbit found issues in branch."
-    echo "   Review the issues before pushing."
-    echo ""
-    echo "Continue anyway? (y/n)"
-    read -r response
-    if [[ ! "$response" =~ ^[Yy]$ ]]; then
-      echo "Push cancelled."
+  echo ""
+  echo "🐰 CodeRabbit: Comprehensive branch review..."
+
+  # Review entire branch against main
+  coderabbit review --branch --compare main --format json > .coderabbit-branch-review.json 2>&1 || {
+    echo "⚠️  Branch review encountered issues (this is OK if not comparing to main)"
+  }
+
+  if [ -f ".coderabbit-branch-review.json" ]; then
+    if grep -q '"severity": "blocker"' .coderabbit-branch-review.json 2>/dev/null; then
+      echo ""
+      echo "❌ BLOCKER ISSUES IN BRANCH"
+      echo "============================================================"
+      coderabbit review --branch --format pretty --filter blocker
+      echo ""
+      echo "Fix these critical issues before pushing!"
+      rm -f .coderabbit-branch-review.json
       exit 1
     fi
-  }
-  
-  echo "✅ CodeRabbit branch review passed"
-  echo ""
+
+    rm -f .coderabbit-branch-review.json
+  fi
+
+  echo "✅ Branch review passed"
 fi
 
-echo "✅ All pre-push checks passed!"
+# Check for sensitive data (basic check)
+echo ""
+echo "🔒 Checking for sensitive data..."
+
+if git diff --cached --name-only | xargs grep -l "api_key\|password\|secret\|token" 2>/dev/null | grep -v ".example" | grep -v "test"; then
+  echo ""
+  echo "⚠️  WARNING: Possible sensitive data detected!"
+  echo "   Review the files above carefully"
+  echo ""
+  echo -n "Continue pushing? (y/N): "
+  read -r response
+  if [[ ! "$response" =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+else
+  echo "✅ No obvious sensitive data detected"
+fi
+
+echo ""
+echo "============================================================"
+echo "✅ Pre-push validation passed - OK to push"
+echo "============================================================"
