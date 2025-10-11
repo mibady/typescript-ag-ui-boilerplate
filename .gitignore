@@ -2,8 +2,6 @@
 
 # dependencies
 /node_modules
-/.pnp
-.pnp.js
 
 # testing
 /coverage
@@ -11,9 +9,6 @@
 # next.js
 /.next/
 /out/
-
-# production
-/build
 
 # misc
 .DS_Store
@@ -25,8 +20,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
 .env
+.env*.local
+.env.vercel
 
 # vercel
 .vercel
@@ -38,8 +34,22 @@ next-env.d.ts
 # sanity
 /sanity/dist
 
-# testing
-/playwright-report
-/test-results
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-.vercel
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts (should not be in boilerplate)
+PHASE-*.md
+PROJECT-STATUS-*.md
+TESTING-COMPLETE-*.md
+IMPLEMENTATION_STEPS.md
+CLEANUP-*.md
+CLEANUP-*.ps1
+test-hooks.txt

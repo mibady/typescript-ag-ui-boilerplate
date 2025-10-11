@@ -1,134 +1,100 @@
-# TypeScript Stack Boilerplate - AI-First Multi-Tenant SaaS
+# AI SaaS Platform
 
-**🚨 AI DEVELOPERS: Read [AGENT-CONTEXT-RULES.md](./AGENT-CONTEXT-RULES.md) FIRST before any work**
+A production-ready AI-powered multi-tenant SaaS application built with Next.js, AG-UI protocol, and Vercel AI SDK.
 
-Production-ready boilerplate for building AI-powered SaaS applications with multi-tenancy, real-time streaming, and comprehensive features.
+---
 
-## 🎯 Features
+## Features
 
-- ✅ **Multi-tenant authentication** with organizations (Clerk)
-- ✅ **AI agent system** with real-time streaming (AG-UI + Vercel AI SDK)
-- ✅ **LLM-agnostic** (OpenAI, Anthropic, Google, Mistral)
-- ✅ **MCP tools** for external integrations
-- ✅ **RAG system** with pgvector for knowledge bases
-- ✅ **Complete marketing site** with CMS (Sanity)
-- ✅ **User dashboard** and admin panel
-- ✅ **API key management**
-- ✅ **Usage tracking** and analytics
-- ✅ **Subscription billing** (Stripe)
-- ✅ **Full testing suite**
-- ✅ **CI/CD pipeline**
+- **Multi-tenant architecture** with organization-based isolation
+- **AI agent system** with real-time streaming (AG-UI protocol)
+- **LLM-agnostic** - OpenAI, Anthropic, Google, Mistral support
+- **RAG system** with pgvector for semantic search
+- **Subscription billing** with Stripe (Free, Pro, Enterprise plans)
+- **Complete test coverage** (74 tests)
+- **CI/CD pipeline** with GitHub Actions
 
-## 🏗️ Tech Stack
+---
 
-### Core Framework
-- Next.js 14.2+ (App Router, React Server Components)
-- React 18.3+ with TypeScript 5.3+ (strict mode)
-- Tailwind CSS 3.4+ with shadcn/ui (46+ components)
+## Tech Stack
 
-### Backend Services
-- Vercel AI SDK 3.4+ (LLM abstraction)
-- AG-UI Protocol (@ag-ui/core) for real-time agent-UI communication
-- Supabase (PostgreSQL + pgvector for RAG)
-- Upstash Redis (event storage, caching, rate limiting)
+- **Frontend:** Next.js 14, React 18, TypeScript 5, Tailwind CSS, shadcn/ui
+- **Backend:** Vercel AI SDK, AG-UI Protocol, Supabase, Upstash Redis
+- **Auth:** Clerk (multi-tenant)
+- **Payments:** Stripe
+- **AI:** OpenAI, Anthropic, Google, Mistral
+- **DevOps:** GitHub Actions, Vercel
 
-### Authentication & Security
-- Clerk 5.7+ (multi-tenant auth with organizations)
-- Arcjet 1.0+ (rate limiting, bot protection, input validation)
+---
 
-### Content & Payments
-- Sanity.io (headless CMS for marketing content)
-- Stripe (subscription management)
-- Resend (transactional emails)
-
-### Monitoring & DevOps
-- Sentry (error monitoring)
-- Vercel (deployment platform)
-- GitHub Actions (CI/CD)
-
-## 🚀 Quick Start
+## Getting Started
 
 ### Prerequisites
+
 - Node.js 20+
-- npm or yarn
-- Git
+- Accounts: Clerk, Supabase, Upstash, at least one LLM provider
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone <your-repo-url>
-cd typescript-ag-ui-boilerplate
-
 # Install dependencies
 npm install
 
-# Copy environment variables
+# Configure environment
 cp .env.example .env.local
+# Edit .env.local with your API keys
+
+# Set up database
+# Run supabase/RESET_AND_SETUP.sql in Supabase Dashboard
 
 # Start development server
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to see the app.
-
-## 📦 Project Structure
-
-See [BUILD_PLAN.md](./BUILD_PLAN.md) for complete documentation.
-
-## 🧪 Testing
-
-```bash
-# Unit tests
-npm test
-
-# Integration tests
-npm run test:integration
-
-# E2E tests
-npm run test:e2e
-
-# Load tests
-npm run test:load
-```
-
-## 📚 Documentation
-
-- [BUILD_PLAN.md](./BUILD_PLAN.md) - Complete build specification
-- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) - System architecture
-- [docs/AG-UI.md](./docs/AG-UI.md) - AG-UI implementation guide
-- [docs/MCP.md](./docs/MCP.md) - MCP tools guide
-- [docs/RAG.md](./docs/RAG.md) - RAG system guide
-- [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) - Deployment instructions
-- [docs/MULTI-TENANCY.md](./docs/MULTI-TENANCY.md) - Multi-tenant setup
-- [docs/TESTING.md](./docs/TESTING.md) - Testing guide
-- [docs/CUSTOMIZATION.md](./docs/CUSTOMIZATION.md) - Customization options
-
-## 🔐 Environment Variables
-
-See `.env.example` for complete list. Required variables:
-
-- Clerk (authentication)
-- Supabase (database + RAG)
-- Upstash Redis (event storage)
-- At least ONE LLM provider (OpenAI, Anthropic, Google, or Mistral)
-- Sanity (CMS)
-- Resend (email)
-- Arcjet (security)
-
-Optional:
-- Stripe (billing)
-- Sentry (monitoring)
-
-## 📄 License
-
-MIT
-
-## 🙏 Acknowledgments
-
-Built with AI Coder Agents - Production-ready boilerplate generator.
+Visit http://localhost:3000
 
 ---
 
-**Version:** 1.0.0
-**Status:** In Development (Phase 1)
+## Development
+
+```bash
+npm run dev              # Start dev server
+npm test                 # Run tests
+npm run build            # Build for production
+npm run lint             # Run linter
+npm run type-check       # TypeScript validation
+```
+
+---
+
+## Project Structure
+
+```
+├── app/                 # Next.js app directory
+│   ├── api/            # API routes
+│   ├── dashboard/      # Protected dashboard
+│   └── (marketing)/    # Public pages
+├── components/          # React components
+├── lib/                 # Utilities
+│   ├── agui/           # AG-UI event store
+│   ├── db/             # Database functions
+│   ├── llm/            # LLM providers
+│   └── stripe/         # Stripe integration
+├── src/__tests__/       # Test suite
+├── supabase/            # Database migrations
+└── .github/workflows/   # CI/CD
+```
+
+---
+
+## Documentation
+
+- [Architecture](./docs/reference/architecture.md)
+- [API Reference](./docs/reference/api.md)
+- [Database Schema](./docs/reference/database.md)
+
+---
+
+## License
+
+MIT

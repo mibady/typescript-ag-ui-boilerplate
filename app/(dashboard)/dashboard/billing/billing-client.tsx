@@ -69,7 +69,7 @@ interface BillingData {
   payments: Payment[];
 }
 
-export function BillingDashboard({ organizationId }: BillingDashboardProps) {
+export function BillingDashboard({ organizationId: _organizationId }: BillingDashboardProps) {
   const [data, setData] = useState<BillingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -77,6 +77,7 @@ export function BillingDashboard({ organizationId }: BillingDashboardProps) {
 
   useEffect(() => {
     fetchBillingData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchBillingData = async () => {
