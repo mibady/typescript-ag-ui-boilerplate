@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { Check, X, Sparkles, Zap, Shield, Crown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -8,13 +9,84 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { getSubscriptionPlans } from '@/lib/db/subscriptions';
-import { PricingButton, BillingCycleSwitch } from './pricing-client';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Pricing | AI SaaS Boilerplate',
   description: 'Choose the perfect plan for your AI-powered application. Start free, scale as you grow.',
 };
+
+const plans = [
+  {
+    name: 'Starter',
+    price: 0,
+    description: 'Perfect for side projects and experimentation',
+    icon: Sparkles,
+    popular: false,
+    features: [
+      { name: '1 organization', included: true },
+      { name: '5 team members', included: true },
+      { name: '10,000 AI tokens/month', included: true },
+      { name: 'Basic analytics', included: true },
+      { name: 'Community support', included: true },
+      { name: 'Standard security', included: true },
+      { name: '1 GB storage', included: true },
+      { name: 'Email support', included: false },
+      { name: 'Custom branding', included: false },
+      { name: 'SSO integration', included: false },
+      { name: 'Advanced security', included: false },
+      { name: 'SLA guarantee', included: false },
+    ],
+    cta: 'Get Started Free',
+    href: '/signup',
+  },
+  {
+    name: 'Professional',
+    price: 49,
+    description: 'For growing teams and businesses',
+    icon: Zap,
+    popular: true,
+    features: [
+      { name: '5 organizations', included: true },
+      { name: 'Unlimited team members', included: true },
+      { name: '100,000 AI tokens/month', included: true },
+      { name: 'Advanced analytics', included: true },
+      { name: 'Priority support', included: true },
+      { name: 'Advanced security', included: true },
+      { name: '50 GB storage', included: true },
+      { name: 'Email support', included: true },
+      { name: 'Custom branding', included: true },
+      { name: 'SSO integration', included: true },
+      { name: 'API access', included: true },
+      { name: 'SLA guarantee', included: false },
+    ],
+    cta: 'Start Free Trial',
+    href: '/signup?plan=pro',
+  },
+  {
+    name: 'Enterprise',
+    price: null,
+    description: 'For large-scale deployments',
+    icon: Crown,
+    popular: false,
+    features: [
+      { name: 'Unlimited organizations', included: true },
+      { name: 'Unlimited team members', included: true },
+      { name: 'Unlimited AI tokens', included: true },
+      { name: 'Real-time analytics', included: true },
+      { name: 'Dedicated support', included: true },
+      { name: 'Enterprise security', included: true },
+      { name: 'Unlimited storage', included: true },
+      { name: '24/7 phone support', included: true },
+      { name: 'Custom branding', included: true },
+      { name: 'SSO integration', included: true },
+      { name: 'API access', included: true },
+      { name: '99.9% SLA guarantee', included: true },
+    ],
+    cta: 'Contact Sales',
+    href: '/contact?inquiry=enterprise',
+  },
+];
 
 const faqs = [
   {
@@ -22,114 +94,44 @@ const faqs = [
     answer: 'Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we will prorate any differences in cost.',
   },
   {
-    question: 'What are message limits?',
-    answer: 'Message limits represent the number of AI chat messages you can send per month. Each conversation message (both user and AI responses) counts toward this limit. Unused messages do not roll over to the next month.',
+    question: 'What are AI tokens?',
+    answer: 'AI tokens represent the usage of AI features in your application. Each API call to our AI agents consumes tokens based on the complexity and length of the interaction. The average conversation uses approximately 1,000-2,000 tokens.',
   },
   {
     question: 'Is there a free trial?',
-    answer: 'Yes! The Pro plan includes a 14-day free trial with full access to all features. No credit card required to start your trial.',
+    answer: 'Yes! All paid plans include a 14-day free trial with full access to all features. No credit card required to start your trial.',
   },
   {
     question: 'What payment methods do you accept?',
-    answer: 'We accept all major credit cards (Visa, Mastercard, American Express, Discover) through Stripe. All payments are processed securely.',
+    answer: 'We accept all major credit cards (Visa, Mastercard, American Express, Discover), PayPal, and wire transfers for Enterprise plans. All payments are processed securely through Stripe.',
   },
   {
     question: 'Can I cancel my subscription?',
-    answer: 'Yes, you can cancel your subscription at any time from your billing dashboard. You will continue to have access until the end of your billing period.',
+    answer: 'Yes, you can cancel your subscription at any time from your account settings. You will continue to have access until the end of your billing period, and we will not charge you again.',
   },
   {
     question: 'Do you offer discounts for non-profits or educational institutions?',
-    answer: 'Yes! Contact our sales team with your details to learn more about special pricing for non-profit organizations and educational institutions.',
+    answer: 'Yes! We offer special pricing for non-profit organizations and educational institutions. Contact our sales team with your details to learn more about our discounts.',
   },
   {
-    question: 'What happens if I exceed my message limit?',
-    answer: 'If you exceed your monthly message limit, you will need to upgrade your plan to continue using AI features. You can upgrade at any time from your billing dashboard.',
+    question: 'What happens if I exceed my AI token limit?',
+    answer: 'If you exceed your monthly token limit, your AI features will be temporarily paused until the next billing cycle. You can upgrade your plan or purchase additional tokens at any time to continue using AI features.',
   },
   {
     question: 'Is my data secure?',
-    answer: 'Absolutely. We use enterprise-grade security including encryption at rest and in transit, regular security audits, and GDPR compliance. Your data is stored in secure data centers with redundant backups.',
+    answer: 'Absolutely. We use enterprise-grade security including encryption at rest and in transit, regular security audits, SOC 2 Type II compliance, and GDPR compliance. Your data is stored in secure data centers with redundant backups.',
   },
   {
     question: 'What kind of support do you offer?',
-    answer: 'Free plan receives community support. Pro plan includes email support with response times under 24 hours. Enterprise plans receive 24/7 priority support with dedicated account management.',
+    answer: 'Starter plans receive community support through our forums. Professional plans include priority email support with response times under 24 hours. Enterprise plans receive 24/7 phone and email support with dedicated account management.',
   },
   {
     question: 'Can I get a refund?',
-    answer: 'We offer a 30-day money-back guarantee for all paid plans. If you are not satisfied within the first 30 days, contact support for a full refund.',
+    answer: 'We offer a 30-day money-back guarantee for all paid plans. If you are not satisfied within the first 30 days, contact support for a full refund, no questions asked.',
   },
 ];
 
-const planIcons: Record<string, typeof Sparkles> = {
-  free: Sparkles,
-  pro: Zap,
-  enterprise: Crown,
-};
-
-export default async function PricingPage() {
-  // Fetch plans from database
-  const dbPlans = await getSubscriptionPlans();
-
-  // Transform database plans to UI format
-  const plans = dbPlans.map((plan) => {
-    const limits = plan.limits;
-    const features = plan.features as Record<string, boolean>;
-
-    return {
-      id: plan.id,
-      name: plan.display_name,
-      price: plan.price_monthly / 100, // Convert from cents to dollars
-      yearlyPrice: plan.price_yearly / 100,
-      description: plan.description || '',
-      icon: planIcons[plan.name] || Sparkles,
-      popular: plan.name === 'pro',
-      features: [
-        {
-          name: limits.messages_per_month === -1
-            ? 'Unlimited messages'
-            : `${limits.messages_per_month.toLocaleString()} messages/month`,
-          included: true,
-        },
-        {
-          name: limits.tokens_per_month === -1
-            ? 'Unlimited tokens'
-            : `${limits.tokens_per_month.toLocaleString()} tokens/month`,
-          included: true,
-        },
-        {
-          name: limits.documents === -1
-            ? 'Unlimited documents'
-            : `${limits.documents} documents`,
-          included: true,
-        },
-        {
-          name: limits.team_members === -1
-            ? 'Unlimited team members'
-            : `${limits.team_members} team member${limits.team_members > 1 ? 's' : ''}`,
-          included: true,
-        },
-        {
-          name: limits.sessions === -1
-            ? 'Unlimited sessions'
-            : `${limits.sessions} concurrent sessions`,
-          included: true,
-        },
-        { name: 'Chat interface', included: features.chat || false },
-        { name: 'Basic agents', included: features.basic_agents || false },
-        { name: 'Advanced agents', included: features.advanced_agents || false },
-        { name: 'Custom agents', included: features.custom_agents || false },
-        { name: 'Email support', included: features.email_support || false },
-        { name: 'Priority support', included: features.priority_support || false },
-        { name: 'Custom integrations', included: features.custom_integrations || false },
-        { name: 'API access', included: features.api_access || false },
-        { name: 'SSO', included: features.sso || false },
-      ],
-      cta: plan.name === 'free' ? 'Get Started Free' :
-           plan.name === 'enterprise' ? 'Contact Sales' :
-           'Start Free Trial',
-      href: plan.name === 'enterprise' ? '/contact?inquiry=enterprise' : undefined,
-    };
-  });
-
+export default function PricingPage() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
@@ -153,7 +155,7 @@ export default async function PricingPage() {
               const Icon = plan.icon;
               return (
                 <Card
-                  key={plan.id}
+                  key={plan.name}
                   className={`relative flex flex-col ${
                     plan.popular ? 'border-primary shadow-xl ring-2 ring-primary' : ''
                   }`}
@@ -176,7 +178,7 @@ export default async function PricingPage() {
 
                   <CardContent className="flex-1">
                     <div className="mb-8">
-                      {plan.name === 'Enterprise Plan' ? (
+                      {plan.price === null ? (
                         <div>
                           <span className="text-4xl font-bold text-foreground">Custom</span>
                         </div>
@@ -189,8 +191,8 @@ export default async function PricingPage() {
                     </div>
 
                     <ul className="space-y-3">
-                      {plan.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
+                      {plan.features.map((feature) => (
+                        <li key={feature.name} className="flex items-start gap-3">
                           {feature.included ? (
                             <Check className="h-5 w-5 shrink-0 text-primary" />
                           ) : (
@@ -209,13 +211,16 @@ export default async function PricingPage() {
                   </CardContent>
 
                   <CardFooter className="pt-8">
-                    <PricingButton
-                      planId={plan.id}
-                      planName={plan.name}
-                      cta={plan.cta}
+                    <Button
                       variant={plan.popular ? 'default' : 'outline'}
-                      href={plan.href}
-                    />
+                      className="w-full"
+                      size="lg"
+                      asChild
+                    >
+                      <Link href={plan.href} prefetch={false}>
+                        {plan.cta}
+                      </Link>
+                    </Button>
                   </CardFooter>
                 </Card>
               );
@@ -295,12 +300,21 @@ export default async function PricingPage() {
             Start your 14-day free trial today. No credit card required.
           </p>
           <div className="mt-8 flex justify-center gap-4">
-            <PricingButton
-              planId="pro"
-              planName="Pro"
-              cta="Start Free Trial"
-              variant="default"
-            />
+            <Button size="lg" variant="secondary" asChild>
+              <Link href="/signup" prefetch={false}>
+                Start Free Trial
+              </Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+              asChild
+            >
+              <Link href="/contact" prefetch={false}>
+                Contact Sales
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

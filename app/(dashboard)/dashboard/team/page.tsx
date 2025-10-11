@@ -66,7 +66,7 @@ export default function TeamPage() {
         <CardHeader>
           <CardTitle>Team Members</CardTitle>
           <CardDescription>
-            View and manage your organization's team members
+            View and manage your organization&apos;s team members
           </CardDescription>
         </CardHeader>
         <CardContent>
