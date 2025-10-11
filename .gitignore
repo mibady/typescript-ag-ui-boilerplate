@@ -41,3 +41,5 @@ next-env.d.ts
 # testing
 /playwright-report
 /test-results
+
+.vercel
