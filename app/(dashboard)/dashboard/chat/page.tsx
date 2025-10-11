@@ -55,7 +55,6 @@ export default async function DashboardChatPage() {
       <ChatPageClient
         sessionId={sessionId}
         userName={user?.firstName || 'User'}
-        orgId={orgId}
       />
     </div>
   );
