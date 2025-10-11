@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { createAssistantAgent } from '@/lib/agents';
 import { getNewEvents, formatSSEEvents } from '@/lib/agui-events';
 import { createMessage } from '@/lib/db/messages';
+import { checkUsageLimit, recordUsage } from '@/lib/db/subscriptions';
 import type { CoreMessage } from 'ai';
 
 export const runtime = 'edge';
@@ -39,6 +40,22 @@ export async function POST(request: NextRequest) {
 
     if (!sessionId) {
       return new Response('Session ID is required', { status: 400 });
+    }
+
+    // Check usage limits before processing
+    const usageCheck = await checkUsageLimit(orgId, 'messages_per_month');
+    if (!usageCheck.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'Message limit exceeded',
+          limit: usageCheck.limit,
+          currentUsage: usageCheck.currentUsage,
+        }),
+        {
+          status: 429,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Create a readable stream for SSE
@@ -123,6 +140,22 @@ export async function POST(request: NextRequest) {
                 model,
               },
             });
+
+            // Record usage metrics
+            await recordUsage({
+              organizationId: orgId,
+              metricName: 'messages_per_month',
+              quantity: 2, // 1 user message + 1 assistant response
+            });
+
+            if (response?.tokensUsed) {
+              await recordUsage({
+                organizationId: orgId,
+                metricName: 'tokens_per_month',
+                quantity: response.tokensUsed,
+                unit: 'tokens',
+              });
+            }
           }
 
           // Clean up and close
