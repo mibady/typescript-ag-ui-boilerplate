@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { createAssistantAgent } from '@/lib/agents';
 import { getNewEvents, formatSSEEvents } from '@/lib/agui-events';
+import { createMessage } from '@/lib/db/messages';
 import type { CoreMessage } from 'ai';
 
 export const runtime = 'edge';
@@ -46,7 +47,21 @@ export async function POST(request: NextRequest) {
 
     const stream = new ReadableStream({
       async start(controller) {
+        let assistantContent = '';
+
         try {
+          // Save user message to database first
+          const userMessage = messages[messages.length - 1];
+          if (userMessage && userMessage.role === 'user') {
+            await createMessage({
+              organizationId: orgId,
+              sessionId,
+              role: 'user',
+              content: userMessage.content as string,
+              metadata: {},
+            });
+          }
+
           // Create agent with configuration
           const agent = createAssistantAgent({
             provider,
@@ -62,8 +77,9 @@ export async function POST(request: NextRequest) {
               userId,
               messages,
             },
-            () => {
-              // Optional: handle individual chunks if needed
+            (chunk: string) => {
+              // Accumulate content for database storage
+              assistantContent += chunk;
             }
           );
 
@@ -83,13 +99,30 @@ export async function POST(request: NextRequest) {
           }, 100); // Poll every 100ms
 
           // Wait for execution to complete
-          await executionPromise;
+          const response = await executionPromise;
 
           // Send any remaining events
           const finalEvents = await getNewEvents(sessionId, eventIndex);
           if (finalEvents.length > 0) {
             const sseData = formatSSEEvents(finalEvents);
             controller.enqueue(encoder.encode(sseData));
+          }
+
+          // Save assistant response to database
+          if (assistantContent || response?.content) {
+            await createMessage({
+              organizationId: orgId,
+              sessionId,
+              role: 'assistant',
+              content: assistantContent || response.content,
+              metadata: {
+                tokensUsed: response?.tokensUsed,
+                cost: response?.cost,
+                finishReason: response?.finishReason,
+                provider,
+                model,
+              },
+            });
           }
 
           // Clean up and close

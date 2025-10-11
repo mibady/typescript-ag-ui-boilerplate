@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { createAssistantAgent } from '@/lib/agents';
+import { createMessage } from '@/lib/db/messages';
 import type { CoreMessage } from 'ai';
 
 export const runtime = 'edge';
@@ -59,6 +60,35 @@ export async function POST(request: NextRequest) {
       userId,
       messages,
     });
+
+    // Save user message to database
+    const userMessage = messages[messages.length - 1];
+    if (userMessage && userMessage.role === 'user') {
+      await createMessage({
+        organizationId: orgId,
+        sessionId,
+        role: 'user',
+        content: userMessage.content as string,
+        metadata: {},
+      });
+    }
+
+    // Save assistant response to database
+    if (response.content) {
+      await createMessage({
+        organizationId: orgId,
+        sessionId,
+        role: 'assistant',
+        content: response.content,
+        metadata: {
+          tokensUsed: response.tokensUsed,
+          cost: response.cost,
+          finishReason: response.finishReason,
+          provider,
+          model,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,
