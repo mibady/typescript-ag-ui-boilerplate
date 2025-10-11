@@ -22,9 +22,8 @@ export function OrganizationSettings() {
         <CardHeader>
           <CardTitle>Organization Details</CardTitle>
           <CardDescription>
-            Manage your organization's information and settings
-          </CardDescription>
-        </CardHeader>
+            Manage your organization&apos;s information and settings
+          </CardDescription>        </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="orgName">Organization Name</Label>
