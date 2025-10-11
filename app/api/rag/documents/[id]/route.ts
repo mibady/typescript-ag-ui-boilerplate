@@ -94,6 +94,7 @@ export async function GET(
       .eq('document_id', id);
 
     // Cast the data to proper type since Supabase relations are tricky
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const docData = data as any;
 
     return NextResponse.json({

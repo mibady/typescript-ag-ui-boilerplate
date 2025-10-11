@@ -9,7 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { getSubscriptionPlans } from '@/lib/db/subscriptions';
-import { PricingButton, BillingCycleSwitch } from './pricing-client';
+import { PricingButton } from './pricing-client';
 
 export const metadata: Metadata = {
   title: 'Pricing | AI SaaS Boilerplate',

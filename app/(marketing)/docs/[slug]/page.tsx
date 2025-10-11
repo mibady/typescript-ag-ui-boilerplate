@@ -6,7 +6,7 @@ import { PortableText } from '@/components/marketing/portable-text';
 import { DocSidebar } from '@/components/marketing/doc-sidebar';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 

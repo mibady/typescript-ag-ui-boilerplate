@@ -71,8 +71,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   });
 
   // Calculate reading time
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wordCount = post.body?.reduce((count: number, block: any) => {
     if (block._type === 'block' && block.children) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return count + block.children.reduce((c: number, child: any) => c + (child.text?.split(/\s+/).length || 0), 0);
     }
     return count;

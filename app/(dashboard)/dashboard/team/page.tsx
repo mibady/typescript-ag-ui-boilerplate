@@ -1,5 +1,4 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TeamMemberList } from '@/components/team/team-member-list';
 import { InviteDialog } from '@/components/team/invite-dialog';

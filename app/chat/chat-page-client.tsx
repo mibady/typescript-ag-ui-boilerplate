@@ -44,7 +44,7 @@ const MODELS: Record<Provider, { value: string; label: string }[]> = {
   ],
 };
 
-export function ChatPageClient({ sessionId, userName, orgId }: ChatPageClientProps) {
+export function ChatPageClient({ sessionId, userName, orgId: _orgId }: ChatPageClientProps) {
   const [provider, setProvider] = useState<Provider>('openai');
   const [model, setModel] = useState<string>('gpt-4-turbo-preview');
   const [messageCount, setMessageCount] = useState(0);

@@ -5,6 +5,7 @@
  * Handles incoming webhook events from Stripe for subscription lifecycle
  */
 
+/* eslint-disable no-console, @typescript-eslint/no-explicit-any */
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';

@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     // 4. Add to CRM system
 
     // For now, we'll just log it (in production, use proper logging)
+    // eslint-disable-next-line no-console
     console.log('Contact form submission:', {
       ...validatedData,
       timestamp: new Date().toISOString(),

@@ -16,7 +16,7 @@ interface PricingButtonProps {
 
 export function PricingButton({
   planId,
-  planName,
+  planName: _planName,
   cta,
   variant = 'default',
   href,

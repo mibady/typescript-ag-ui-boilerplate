@@ -75,6 +75,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Get chunk counts for each document
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const documentIds = data.map((d: any) => d.id);
 
     const { data: chunkCounts, error: chunkError } = await supabase
@@ -96,6 +97,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Format response
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const documents = data.map((doc: any) => ({
       id: doc.id,
       name: doc.name,

@@ -17,7 +17,7 @@ import {
  * GET /api/billing/subscription
  * Returns current subscription, plan, and usage data
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const { userId, orgId } = await auth();
 
