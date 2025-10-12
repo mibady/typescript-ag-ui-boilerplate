@@ -86,6 +86,15 @@ export async function checkRateLimit(
   userId: string,
   limit: { maxCalls: number; windowMs: number }
 ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  if (!redis) {
+    // Allow all requests if Redis is not configured
+    return {
+      allowed: true,
+      remaining: limit.maxCalls,
+      resetAt: Date.now() + limit.windowMs,
+    };
+  }
+
   const key = `ratelimit:tool:${toolName}:${userId}`;
   const now = Date.now();
   const windowStart = now - limit.windowMs;
@@ -157,6 +166,10 @@ export async function logToolExecution(
   args: Record<string, unknown>,
   result: { success: boolean; executionTime?: number }
 ): Promise<void> {
+  if (!redis) {
+    return;
+  }
+
   const logEntry = {
     tool: toolName,
     userId: context.userId,

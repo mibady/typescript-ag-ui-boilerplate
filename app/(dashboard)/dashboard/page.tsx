@@ -1,7 +1,8 @@
 import { currentUser } from '@clerk/nextjs/server';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { AgentInteraction } from '@/components/agent-interaction';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   MessageSquare,
   Database,
@@ -67,7 +68,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-4 md:p-8">
       {/* Welcome Section */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
@@ -112,55 +113,60 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Getting Started Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Getting Started</CardTitle>
-          <CardDescription>
-            Quick tips to help you get the most out of your workspace
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="mt-1 rounded-full bg-primary/10 p-1">
-              <div className="h-2 w-2 rounded-full bg-primary" />
+      {/* Main Content Area */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <div className="col-span-4">
+          <AgentInteraction />
+        </div>
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>Getting Started</CardTitle>
+            <CardDescription>
+              Follow these steps to get your project running.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-1 rounded-full bg-primary/10 p-1">
+                <div className="h-2 w-2 rounded-full bg-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Configure Environment</p>
+                <p className="text-sm text-muted-foreground">
+                  Copy `.env.example` to `.env.local` and add your API keys.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="font-medium">Try AI Chat</p>
-              <p className="text-sm text-muted-foreground">
-                Start a conversation with our AI agents to see them in action
-              </p>
+            <div className="flex items-start gap-3">
+              <div className="mt-1 rounded-full bg-primary/10 p-1">
+                <div className="h-2 w-2 rounded-full bg-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Upload Knowledge</p>
+                <p className="text-sm text-muted-foreground">
+                  Add documents to your knowledge base for context-aware responses.
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="mt-1 rounded-full bg-primary/10 p-1">
-              <div className="h-2 w-2 rounded-full bg-primary" />
+            <div className="flex items-start gap-3">
+              <div className="mt-1 rounded-full bg-primary/10 p-1">
+                <div className="h-2 w-2 rounded-full bg-primary" />
+              </div>
+              <div>
+                <p className="font-medium">Invite Your Team</p>
+                <p className="text-sm text-muted-foreground">
+                  Collaborate with team members on AI-powered projects.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="font-medium">Upload Knowledge</p>
-              <p className="text-sm text-muted-foreground">
-                Add documents to your knowledge base for context-aware responses
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="mt-1 rounded-full bg-primary/10 p-1">
-              <div className="h-2 w-2 rounded-full bg-primary" />
-            </div>
-            <div>
-              <p className="font-medium">Invite Your Team</p>
-              <p className="text-sm text-muted-foreground">
-                Collaborate with team members on AI-powered projects
-              </p>
-            </div>
-          </div>
-          <Button variant="outline" className="w-full mt-4" asChild>
-            <Link href="/docs">
-              View Full Documentation <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+            <Button variant="outline" className="w-full mt-4" asChild>
+              <Link href="/docs">
+                View Full Documentation <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

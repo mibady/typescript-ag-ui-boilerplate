@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { createAssistantAgent } from '@/lib/agents';
 import { createMessage } from '@/lib/db/messages';
-import { checkUsageLimit, recordUsage } from '@/lib/db/subscriptions';
+import {
+  checkUsageLimit,
+  recordUsage,
+  getSubscriptionWithPlan,
+} from '@/lib/db/subscriptions';
+import { ajApi, getRateLimitForPlan } from '@/lib/arcjet';
 import type { CoreMessage } from 'ai';
 
 export const runtime = 'edge';
@@ -27,6 +32,37 @@ export async function POST(request: NextRequest) {
 
     if (!userId || !orgId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get subscription plan for tier-based rate limiting
+    const subscription = await getSubscriptionWithPlan(orgId);
+    const planName = subscription?.plan?.name || 'free';
+
+    // Apply tier-based rate limiting
+    const rateLimitRule = getRateLimitForPlan(
+      planName as 'free' | 'pro' | 'enterprise'
+    );
+
+    const decision = await ajApi
+      .withRule(rateLimitRule)
+      .protect(request, {});
+
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return NextResponse.json(
+          {
+            error: 'Rate limit exceeded',
+            plan: planName,
+            retryAfter: decision.reason.resetTime,
+          },
+          { status: 429 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: 'Request blocked' },
+        { status: 403 }
+      );
     }
 
     // Parse request body

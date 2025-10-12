@@ -23,7 +23,7 @@ export function CTA() {
         {/* CTA Buttons */}
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Button size="lg" variant="secondary" className="group min-w-[200px]" asChild>
-            <Link href="/signup" prefetch={false}>
+            <Link href="/sign-up" prefetch={false}>
               Get Started Free
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>

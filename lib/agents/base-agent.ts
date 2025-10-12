@@ -1,16 +1,18 @@
 import { streamText, generateText, type CoreMessage } from 'ai';
 import { createLanguageModel, type LLMProvider } from '../llm-provider';
 import {
-  emitAgentStart,
+  emitRunStarted,
+  emitRunFinished,
+  emitRunError,
   emitMessageStart,
   emitMessageDelta,
-  emitMessageComplete,
+  emitMessageEnd,
   emitToolCallStart,
-  emitToolCallComplete,
-  emitError,
-  emitComplete,
+  emitToolCallEnd,
+  emitToolCallResult,
 } from '../agui-events';
 import { createMCPClient, type MCPClient, type MCPToolResult } from '../mcp';
+import { nanoid } from 'nanoid';
 
 export interface AgentConfig {
   provider?: LLMProvider;
@@ -79,7 +81,8 @@ export class BaseAgent {
   protected async executeTool(
     toolName: string,
     args: Record<string, unknown>,
-    sessionId: string
+    sessionId: string,
+    parentMessageId?: string
   ): Promise<MCPToolResult> {
     if (!this.mcpClient) {
       return {
@@ -88,15 +91,26 @@ export class BaseAgent {
       };
     }
 
+    const toolCallId = `tool_${nanoid()}`;
+
     try {
-      // Emit tool call start event
-      await emitToolCallStart(sessionId, toolName, args);
+      // Emit tool call start event (AG-UI compliant)
+      await emitToolCallStart(sessionId, toolCallId, toolName, parentMessageId);
 
       // Execute tool
       const result = await this.mcpClient.executeTool(toolName, args);
 
-      // Emit tool call complete event
-      await emitToolCallComplete(sessionId, toolName, result);
+      // Emit tool call end event
+      await emitToolCallEnd(sessionId, toolCallId);
+
+      // Emit tool call result
+      const messageId = `msg_${nanoid()}`;
+      await emitToolCallResult(
+        sessionId,
+        messageId,
+        toolCallId,
+        JSON.stringify(result)
+      );
 
       return result;
     } catch (error) {
@@ -106,7 +120,18 @@ export class BaseAgent {
         error: errorMessage,
       };
 
-      await emitToolCallComplete(sessionId, toolName, errorResult);
+      // Emit tool call end even on error
+      await emitToolCallEnd(sessionId, toolCallId);
+
+      // Emit error result
+      const messageId = `msg_${nanoid()}`;
+      await emitToolCallResult(
+        sessionId,
+        messageId,
+        toolCallId,
+        JSON.stringify(errorResult)
+      );
+
       return errorResult;
     }
   }
@@ -132,6 +157,13 @@ export class BaseAgent {
     const { sessionId, messages } = context;
     const startTime = Date.now();
 
+    // Generate AG-UI IDs
+    const threadId = sessionId; // Use sessionId as threadId
+    const runId = `run_${nanoid()}`;
+    const messageId = `msg_${nanoid()}`;
+
+    console.log('[BaseAgent] executeStream started:', { sessionId, threadId, runId, messageId });
+
     try {
       // Initialize MCP client for tool execution
       this.initializeMCPClient(context);
@@ -141,18 +173,15 @@ export class BaseAgent {
         this.config.provider,
         this.config.model
       );
+      console.log('[BaseAgent] Language model created:', { provider: this.config.provider, model: this.config.model });
 
-      // Emit start event
-      await emitAgentStart(
-        sessionId,
-        this.agentType,
-        this.config.model || 'default',
-        this.config.provider || 'default'
-      );
+      // Emit RUN_STARTED event (AG-UI protocol)
+      console.log('[BaseAgent] Emitting RUN_STARTED');
+      await emitRunStarted(sessionId, threadId, runId);
 
-      // Generate message ID
-      const messageId = `msg_${Date.now()}`;
-      await emitMessageStart(sessionId, messageId);
+      // Emit TEXT_MESSAGE_START event
+      console.log('[BaseAgent] Emitting TEXT_MESSAGE_START');
+      await emitMessageStart(sessionId, messageId, 'assistant');
 
       // Prepare messages with system prompt
       const fullMessages: CoreMessage[] = [
@@ -169,15 +198,22 @@ export class BaseAgent {
 
       let fullContent = '';
       let tokensUsed = 0;
+      let chunkCount = 0;
 
+      console.log('[BaseAgent] Starting to process text stream');
       // Process stream
       for await (const chunk of result.textStream) {
+        console.log('[BaseAgent] Received chunk from AI:', { chunkLength: chunk.length, chunkPreview: chunk.substring(0, 50) });
         fullContent += chunk;
-        await emitMessageDelta(sessionId, chunk);
-        if (onChunk) {
-          onChunk(chunk);
-        }
+        chunkCount++;
+        // Emit TEXT_MESSAGE_CONTENT with messageId (AG-UI protocol)
+        await emitMessageDelta(sessionId, messageId, chunk);
+        // The onChunk callback is no longer needed as it causes duplication.
+        // if (onChunk) {
+        //   onChunk(chunk);
+        // }
       }
+      console.log('[BaseAgent] Finished processing stream:', { chunkCount, contentLength: fullContent.length, fullContentPreview: fullContent.substring(0, 100) });
 
       // Get usage info
       const usage = await result.usage;
@@ -186,18 +222,22 @@ export class BaseAgent {
       // Calculate cost (rough estimate)
       const cost = this.estimateCost(tokensUsed, this.config.provider);
 
-      // Emit completion
-      await emitMessageComplete(
-        sessionId,
-        messageId,
-        fullContent,
-        tokensUsed,
-        cost
-      );
+      // Emit TEXT_MESSAGE_END event
+      console.log('[BaseAgent] Emitting TEXT_MESSAGE_END');
+      await emitMessageEnd(sessionId, messageId);
 
       const duration = Date.now() - startTime;
-      await emitComplete(sessionId, tokensUsed, cost, duration);
 
+      // Emit RUN_FINISHED event (AG-UI protocol)
+      console.log('[BaseAgent] Emitting RUN_FINISHED:', { tokensUsed, cost, duration });
+      await emitRunFinished(sessionId, threadId, runId, {
+        content: fullContent,
+        tokensUsed,
+        cost,
+        duration,
+      });
+
+      console.log('[BaseAgent] executeStream completed successfully');
       return {
         content: fullContent,
         tokensUsed,
@@ -207,7 +247,8 @@ export class BaseAgent {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      await emitError(sessionId, errorMessage);
+      // Emit RUN_ERROR event (AG-UI protocol)
+      await emitRunError(sessionId, errorMessage);
       throw error;
     }
   }
@@ -219,6 +260,11 @@ export class BaseAgent {
     const { sessionId, messages } = context;
     const startTime = Date.now();
 
+    // Generate AG-UI IDs
+    const threadId = sessionId; // Use sessionId as threadId
+    const runId = `run_${nanoid()}`;
+    const messageId = `msg_${nanoid()}`;
+
     try {
       // Initialize MCP client for tool execution
       this.initializeMCPClient(context);
@@ -229,17 +275,11 @@ export class BaseAgent {
         this.config.model
       );
 
-      // Emit start event
-      await emitAgentStart(
-        sessionId,
-        this.agentType,
-        this.config.model || 'default',
-        this.config.provider || 'default'
-      );
+      // Emit RUN_STARTED event (AG-UI protocol)
+      await emitRunStarted(sessionId, threadId, runId);
 
-      // Generate message ID
-      const messageId = `msg_${Date.now()}`;
-      await emitMessageStart(sessionId, messageId);
+      // Emit TEXT_MESSAGE_START event
+      await emitMessageStart(sessionId, messageId, 'assistant');
 
       // Prepare messages with system prompt
       const fullMessages: CoreMessage[] = [
@@ -257,17 +297,21 @@ export class BaseAgent {
       const tokensUsed = result.usage.totalTokens ?? 0;
       const cost = this.estimateCost(tokensUsed, this.config.provider);
 
-      // Emit completion
-      await emitMessageComplete(
-        sessionId,
-        messageId,
-        result.text,
-        tokensUsed,
-        cost
-      );
+      // Emit TEXT_MESSAGE_CONTENT with full text
+      await emitMessageDelta(sessionId, messageId, result.text);
+
+      // Emit TEXT_MESSAGE_END event
+      await emitMessageEnd(sessionId, messageId);
 
       const duration = Date.now() - startTime;
-      await emitComplete(sessionId, tokensUsed, cost, duration);
+
+      // Emit RUN_FINISHED event (AG-UI protocol)
+      await emitRunFinished(sessionId, threadId, runId, {
+        content: result.text,
+        tokensUsed,
+        cost,
+        duration,
+      });
 
       return {
         content: result.text,
@@ -278,7 +322,8 @@ export class BaseAgent {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      await emitError(sessionId, errorMessage);
+      // Emit RUN_ERROR event (AG-UI protocol)
+      await emitRunError(sessionId, errorMessage);
       throw error;
     }
   }

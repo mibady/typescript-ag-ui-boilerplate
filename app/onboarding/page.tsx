@@ -15,6 +15,15 @@ export default async function OnboardingPage() {
     redirect('/sign-in');
   }
 
+  // Extract only serializable data from the user object
+  const userData = {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    emailAddresses: user.emailAddresses.map(email => ({
+      emailAddress: email.emailAddress
+    }))
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       <div className="w-full max-w-2xl px-4">
@@ -26,7 +35,7 @@ export default async function OnboardingPage() {
             Let&apos;s set up your workspace and preferences
           </p>
         </div>
-        <OnboardingForm user={user} />
+        <OnboardingForm user={userData} />
       </div>
     </div>
   );

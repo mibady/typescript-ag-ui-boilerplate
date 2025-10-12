@@ -33,3 +33,13 @@ export {
   type SearchResult,
   type SearchOptions,
 } from './search';
+
+// Vector Search (Upstash Vector)
+export {
+  ingestDocumentChunks,
+  searchVectorSimilarity,
+  hybridSearch,
+  getRAGContext,
+  deleteDocumentVectors,
+  type VectorSearchResult,
+} from './vector-search';

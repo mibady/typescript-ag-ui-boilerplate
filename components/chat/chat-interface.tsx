@@ -7,6 +7,9 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { HttpAgent } from '@ag-ui/client';
+import { EventType, type Message as AGUIMessage, type BaseEvent } from '@ag-ui/core';
+import { nanoid } from 'nanoid';
 
 export interface Message {
   id: string;
@@ -32,8 +35,9 @@ export function ChatInterface({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [streamingContent, setStreamingContent] = useState('');
+  const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const agentRef = useRef<HttpAgent | null>(null);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -56,7 +60,7 @@ export function ChatInterface({
 
     // Add user message
     const userMessage: Message = {
-      id: `msg_${Date.now()}`,
+      id: `msg_${nanoid()}`,
       role: 'user',
       content,
       timestamp: new Date(),
@@ -65,100 +69,104 @@ export function ChatInterface({
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      // Prepare messages for API
-      const apiMessages = [...messages, userMessage].map((msg) => ({
-        role: msg.role,
+      // Convert messages to AG-UI format
+      const allMessages = [...messages, userMessage];
+      const aguiMessages: AGUIMessage[] = allMessages.map((msg) => ({
+        id: msg.id,
+        role: msg.role as 'user' | 'assistant' | 'system',
         content: msg.content,
       }));
 
-      // Start SSE stream
-      const response = await fetch('/api/agent/stream', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: apiMessages,
-          sessionId,
-          provider,
-          model,
-        }),
+      // Initialize HttpAgent (AG-UI SDK)
+      const agent = new HttpAgent({
+        url: '/api/agent/stream',
       });
+      agentRef.current = agent;
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (!reader) {
-        throw new Error('No response body');
-      }
+      // Run agent with AG-UI protocol
+      const eventObservable = await agent.run({
+        threadId: sessionId,
+        runId: `run_${nanoid()}`,
+        messages: aguiMessages,
+        tools: [],
+        context: provider && model ? [
+          { description: 'provider', value: provider },
+          { description: 'model', value: model },
+        ] : [],
+        state: null,
+        forwardedProps: null,
+      });
 
       let assistantContent = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          break;
-        }
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-
-              // Handle different event types
-              if (line.includes('event: agent.message.delta')) {
-                assistantContent += data.delta;
-                setStreamingContent(assistantContent);
-              } else if (line.includes('event: agent.message.complete')) {
-                assistantContent = data.content;
-              } else if (line.includes('event: error')) {
-                setError(data.error);
-              } else if (line.includes('event: done')) {
-                // Stream complete
-                break;
-              }
-            } catch {
-              // Ignore parse errors for incomplete chunks
+      // Subscribe to AG-UI events
+      eventObservable.subscribe({
+        next: (event: BaseEvent) => {
+          console.log('[ChatInterface] Received event:', event);
+          try {
+            // Handle TEXT_MESSAGE_START
+            if (event.type === EventType.TEXT_MESSAGE_START) {
+              const startEvent = event as any;
+              setCurrentMessageId(startEvent.messageId);
+              assistantContent = '';
+              setStreamingContent('');
             }
+
+            // Handle TEXT_MESSAGE_CONTENT (streaming delta)
+            else if (event.type === EventType.TEXT_MESSAGE_CONTENT) {
+              const contentEvent = event as any;
+              assistantContent += contentEvent.delta;
+              setStreamingContent(assistantContent);
+            }
+
+            // Handle TEXT_MESSAGE_END
+            else if (event.type === EventType.TEXT_MESSAGE_END) {
+              const endEvent = event as any;
+              if (assistantContent) {
+                const assistantMessage: Message = {
+                  id: endEvent.messageId || `msg_${nanoid()}`,
+                  role: 'assistant',
+                  content: assistantContent,
+                  timestamp: new Date(),
+                };
+                setMessages((prev) => [...prev, assistantMessage]);
+              }
+              setStreamingContent('');
+              setCurrentMessageId(null);
+            }
+
+            // Handle RUN_ERROR
+            else if (event.type === EventType.RUN_ERROR) {
+              const errorEvent = event as any;
+              setError(errorEvent.message || 'An error occurred');
+            }
+          } catch (err) {
+            console.error('Error processing event:', err);
           }
-        }
-      }
-
-      // Add assistant message
-      if (assistantContent) {
-        const assistantMessage: Message = {
-          id: `msg_${Date.now()}`,
-          role: 'assistant',
-          content: assistantContent,
-          timestamp: new Date(),
-        };
-
-        setMessages((prev) => [...prev, assistantMessage]);
-      }
-
-      setStreamingContent('');
+        },
+        error: (err) => {
+          console.error('AG-UI subscription error:', err);
+          setError(err instanceof Error ? err.message : 'An error occurred');
+          setIsLoading(false);
+        },
+        complete: () => {
+          console.log('Agent run completed');
+          setIsLoading(false);
+        },
+      });
     } catch (err) {
       console.error('Chat error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
       setIsLoading(false);
     }
   };
 
-  // Cleanup event source on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
+      // AG-UI HttpAgent handles cleanup automatically
+      // Observable subscriptions are cleaned up when component unmounts
+      agentRef.current = null;
     };
   }, []);
 

@@ -284,6 +284,19 @@ ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE usage_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_history ENABLE ROW LEVEL SECURITY;
 
+-- Helper function to get user's organization ID from Clerk JWT
+CREATE OR REPLACE FUNCTION get_user_org_id()
+RETURNS UUID AS $$
+BEGIN
+  RETURN (
+    SELECT organization_id
+    FROM users
+    WHERE clerk_user_id = auth.jwt()->>'sub'
+    LIMIT 1
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Service role policies (for backend API)
 CREATE POLICY "Service role full access" ON organizations FOR ALL TO service_role USING (true);
 CREATE POLICY "Service role full access" ON users FOR ALL TO service_role USING (true);
@@ -296,6 +309,126 @@ CREATE POLICY "Service role full access" ON subscription_plans FOR ALL TO servic
 CREATE POLICY "Service role full access" ON subscriptions FOR ALL TO service_role USING (true);
 CREATE POLICY "Service role full access" ON usage_records FOR ALL TO service_role USING (true);
 CREATE POLICY "Service role full access" ON payment_history FOR ALL TO service_role USING (true);
+
+-- ============================================================================
+-- AUTHENTICATED USER POLICIES (Client-side access)
+-- ============================================================================
+
+-- ORGANIZATIONS: Users can read their own organization
+CREATE POLICY "Users can read own organization" ON organizations
+  FOR SELECT TO authenticated
+  USING (id = get_user_org_id());
+
+-- USERS: Users can read users in their organization
+CREATE POLICY "Users can read org members" ON users
+  FOR SELECT TO authenticated
+  USING (organization_id = get_user_org_id());
+
+-- USERS: Users can update their own profile
+CREATE POLICY "Users can update own profile" ON users
+  FOR UPDATE TO authenticated
+  USING (clerk_user_id = auth.jwt()->>'sub')
+  WITH CHECK (clerk_user_id = auth.jwt()->>'sub');
+
+-- AGENT_SESSIONS: Users can read their org's sessions
+CREATE POLICY "Users can read org sessions" ON agent_sessions
+  FOR SELECT TO authenticated
+  USING (organization_id = get_user_org_id());
+
+-- AGENT_SESSIONS: Users can create sessions in their org
+CREATE POLICY "Users can create sessions" ON agent_sessions
+  FOR INSERT TO authenticated
+  WITH CHECK (organization_id = get_user_org_id());
+
+-- AGENT_SESSIONS: Users can update their own sessions
+CREATE POLICY "Users can update own sessions" ON agent_sessions
+  FOR UPDATE TO authenticated
+  USING (user_id IN (
+    SELECT id FROM users WHERE clerk_user_id = auth.jwt()->>'sub'
+  ));
+
+-- MESSAGES: Users can read their org's messages
+CREATE POLICY "Users can read org messages" ON messages
+  FOR SELECT TO authenticated
+  USING (organization_id = get_user_org_id());
+
+-- MESSAGES: Users can create messages in their org
+CREATE POLICY "Users can create messages" ON messages
+  FOR INSERT TO authenticated
+  WITH CHECK (organization_id = get_user_org_id());
+
+-- DOCUMENTS: Users can read their org's documents
+CREATE POLICY "Users can read org documents" ON documents
+  FOR SELECT TO authenticated
+  USING (organization_id = get_user_org_id());
+
+-- DOCUMENTS: Users can create documents in their org
+CREATE POLICY "Users can create documents" ON documents
+  FOR INSERT TO authenticated
+  WITH CHECK (organization_id = get_user_org_id());
+
+-- DOCUMENTS: Users can update their own documents
+CREATE POLICY "Users can update own documents" ON documents
+  FOR UPDATE TO authenticated
+  USING (user_id IN (
+    SELECT id FROM users WHERE clerk_user_id = auth.jwt()->>'sub'
+  ));
+
+-- DOCUMENTS: Users can delete their own documents
+CREATE POLICY "Users can delete own documents" ON documents
+  FOR DELETE TO authenticated
+  USING (user_id IN (
+    SELECT id FROM users WHERE clerk_user_id = auth.jwt()->>'sub'
+  ));
+
+-- DOCUMENT_CHUNKS: Users can read their org's document chunks
+CREATE POLICY "Users can read org document chunks" ON document_chunks
+  FOR SELECT TO authenticated
+  USING (organization_id = get_user_org_id());
+
+-- API_KEYS: Users can read their org's API keys
+CREATE POLICY "Users can read org API keys" ON api_keys
+  FOR SELECT TO authenticated
+  USING (organization_id = get_user_org_id());
+
+-- API_KEYS: Users can create API keys in their org
+CREATE POLICY "Users can create API keys" ON api_keys
+  FOR INSERT TO authenticated
+  WITH CHECK (organization_id = get_user_org_id());
+
+-- API_KEYS: Users can update their own API keys
+CREATE POLICY "Users can update own API keys" ON api_keys
+  FOR UPDATE TO authenticated
+  USING (user_id IN (
+    SELECT id FROM users WHERE clerk_user_id = auth.jwt()->>'sub'
+  ));
+
+-- API_KEYS: Users can delete their own API keys
+CREATE POLICY "Users can delete own API keys" ON api_keys
+  FOR DELETE TO authenticated
+  USING (user_id IN (
+    SELECT id FROM users WHERE clerk_user_id = auth.jwt()->>'sub'
+  ));
+
+-- SUBSCRIPTION_PLANS: All authenticated users can read plans (for pricing page)
+CREATE POLICY "Authenticated users can read plans" ON subscription_plans
+  FOR SELECT TO authenticated
+  USING (is_active = true);
+
+-- SUBSCRIPTIONS: Users can read their org's subscription
+CREATE POLICY "Users can read org subscription" ON subscriptions
+  FOR SELECT TO authenticated
+  USING (organization_id = get_user_org_id());
+
+-- USAGE_RECORDS: Users can read their org's usage records
+CREATE POLICY "Users can read org usage" ON usage_records
+  FOR SELECT TO authenticated
+  USING (organization_id = get_user_org_id());
+
+-- PAYMENT_HISTORY: Users can read their org's payment history
+CREATE POLICY "Users can read org payments" ON payment_history
+  FOR SELECT TO authenticated
+  USING (organization_id = get_user_org_id());
 
 -- ============================================================================
 -- VERIFICATION QUERIES

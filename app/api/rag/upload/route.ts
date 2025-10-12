@@ -8,11 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@/lib/supabase-server';
-import {
-  chunkDocument,
-  generateEmbeddings,
-  CHUNKING_CONFIG,
-} from '@/lib/rag';
+import { queueDocumentProcessing } from '@/lib/upstash/qstash';
 
 export const runtime = 'edge';
 
@@ -114,48 +110,24 @@ export async function POST(req: NextRequest) {
 
     const documentId = documentData.id;
 
-    // Chunk the document
-    const chunks = chunkDocument(content, {
-      maxTokens: CHUNKING_CONFIG.maxTokens,
-      overlapTokens: CHUNKING_CONFIG.overlapTokens,
-    });
-
-    // Generate embeddings for all chunks
-    const chunkContents = chunks.map(c => c.content);
-    const embeddings = await generateEmbeddings(chunkContents);
-
-    // Prepare chunk records for insertion
-    const chunkRecords = chunks.map((chunk, index) => ({
-      organization_id: organizationId,
-      document_id: documentId,
-      content: chunk.content,
-      chunk_index: chunk.metadata.chunkIndex,
-      embedding: embeddings[index],
-      metadata: chunk.metadata,
-    }));
-
-    // Insert all chunks
-    const { error: chunksError } = await supabase
-      .from('document_chunks')
-      .insert(chunkRecords);
-
-    if (chunksError) {
-      console.error('Error inserting chunks:', chunksError);
-      // Clean up document if chunks fail
-      await supabase.from('documents').delete().eq('id', documentId);
-
-      return NextResponse.json(
-        { error: 'Failed to process document chunks' },
-        { status: 500 }
-      );
+    // Queue document processing job (async via QStash)
+    // This will chunk, embed, and store in Upstash Vector in the background
+    try {
+      await queueDocumentProcessing(documentId, organizationId);
+      
+      console.log(`Queued processing for document ${documentId}`);
+    } catch (queueError) {
+      console.error('Error queuing document processing:', queueError);
+      // Don't fail the request - document is saved, processing can be retried
     }
 
-    // Return success response
+    // Return success response immediately
+    // Processing will happen in the background
     return NextResponse.json({
       success: true,
       documentId,
-      chunkCount: chunks.length,
-      totalTokens: chunks.reduce((sum, c) => sum + c.metadata.tokenCount, 0),
+      status: 'queued',
+      message: 'Document uploaded successfully. Processing in background.',
     });
   } catch (error) {
     console.error('Error in /api/rag/upload:', error);

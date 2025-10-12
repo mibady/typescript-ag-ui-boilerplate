@@ -4,46 +4,63 @@ import { createAssistantAgent } from '@/lib/agents';
 import { getNewEvents, formatSSEEvents } from '@/lib/agui-events';
 import { createMessage } from '@/lib/db/messages';
 import { checkUsageLimit, recordUsage } from '@/lib/db/subscriptions';
+import { clearEvents } from '@/lib/redis';
+import type { RunAgentInput } from '@ag-ui/core';
 import type { CoreMessage } from 'ai';
 
 export const runtime = 'edge';
 export const maxDuration = 60;
 
-interface StreamAgentRequest {
-  messages: CoreMessage[];
-  sessionId: string;
-  provider?: 'openai' | 'anthropic' | 'google' | 'mistral';
-  model?: string;
-  temperature?: number;
-}
-
 /**
  * POST /api/agent/stream
- * Execute an AI agent with streaming response via Server-Sent Events
+ * AG-UI compliant endpoint for streaming agent execution
+ * Accepts RunAgentInput from HttpAgent and returns SSE stream
  */
 export async function POST(request: NextRequest) {
+  console.log('[Stream Route] POST request received');
   try {
     // Authenticate user
     const { userId, orgId } = await auth();
+    console.log('[Stream Route] Auth:', { userId, orgId });
 
-    if (!userId || !orgId) {
+    if (!userId) {
+      console.log('[Stream Route] Unauthorized - no userId');
       return new Response('Unauthorized', { status: 401 });
     }
 
-    // Parse request body
-    const body: StreamAgentRequest = await request.json();
-    const { messages, sessionId, provider, model, temperature } = body;
+    // Use orgId if available, otherwise use userId as fallback for single-tenant mode
+    const organizationId = orgId || userId;
+
+    // Parse AG-UI RunAgentInput
+    const body: RunAgentInput = await request.json();
+    const { threadId, runId, messages, context } = body;
+    console.log('[Stream Route] Request body:', { threadId, runId, messageCount: messages?.length, context });
 
     if (!messages || messages.length === 0) {
+      console.log('[Stream Route] Bad request - no messages');
       return new Response('Messages are required', { status: 400 });
     }
 
-    if (!sessionId) {
-      return new Response('Session ID is required', { status: 400 });
+    if (!threadId) {
+      console.log('[Stream Route] Bad request - no threadId');
+      return new Response('Thread ID is required', { status: 400 });
     }
 
+    // Extract provider/model from context (if provided)
+    const providerContext = context?.find(c => c.description === 'provider');
+    const modelContext = context?.find(c => c.description === 'model');
+    const provider = providerContext?.value as 'openai' | 'anthropic' | 'google' | 'mistral' | undefined;
+    const model = modelContext?.value;
+
+    // Use threadId as sessionId for storage
+    const sessionId = threadId;
+
+    // Clear old events for this session to prevent replaying stale events
+    await clearEvents(sessionId);
+    console.log('[Stream Route] Cleared old events for session:', sessionId);
+
     // Check usage limits before processing
-    const usageCheck = await checkUsageLimit(orgId, 'messages_per_month');
+    const usageCheck = await checkUsageLimit(organizationId, 'messages_per_month');
     if (!usageCheck.allowed) {
       return new Response(
         JSON.stringify({
@@ -58,12 +75,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Convert AG-UI messages to CoreMessage format for Vercel AI SDK
+    const coreMessages: CoreMessage[] = messages.map((msg) => ({
+      role: msg.role as 'user' | 'assistant' | 'system',
+      content: msg.content || '',
+    }));
+
     // Create a readable stream for SSE
     const encoder = new TextEncoder();
     let eventIndex = 0;
 
+    console.log('[Stream Route] Creating ReadableStream for sessionId:', sessionId);
+
     const stream = new ReadableStream({
       async start(controller) {
+        console.log('[Stream Route] Stream started');
         let assistantContent = '';
 
         try {
@@ -71,10 +97,10 @@ export async function POST(request: NextRequest) {
           const userMessage = messages[messages.length - 1];
           if (userMessage && userMessage.role === 'user') {
             await createMessage({
-              organizationId: orgId,
+              organizationId,
               sessionId,
               role: 'user',
-              content: userMessage.content as string,
+              content: userMessage.content || '',
               metadata: {},
             });
           }
@@ -83,22 +109,15 @@ export async function POST(request: NextRequest) {
           const agent = createAssistantAgent({
             provider,
             model,
-            temperature,
           });
 
           // Start streaming execution in background
-          const executionPromise = agent.executeStream(
-            {
-              sessionId,
-              organizationId: orgId,
-              userId,
-              messages,
-            },
-            (chunk: string) => {
-              // Accumulate content for database storage
-              assistantContent += chunk;
-            }
-          );
+          const executionPromise = agent.executeStream({
+            sessionId,
+            organizationId,
+            userId,
+            messages: coreMessages,
+          });
 
           // Poll for new events and send via SSE
           const pollInterval = setInterval(async () => {
@@ -106,71 +125,43 @@ export async function POST(request: NextRequest) {
               const newEvents = await getNewEvents(sessionId, eventIndex);
 
               if (newEvents.length > 0) {
+                console.log(`[Stream] Sending ${newEvents.length} events, index: ${eventIndex}`);
                 const sseData = formatSSEEvents(newEvents);
                 controller.enqueue(encoder.encode(sseData));
                 eventIndex += newEvents.length;
               }
             } catch (error) {
-              console.error('Error polling events:', error);
+              console.error('[Stream] Error polling events:', error);
             }
           }, 100); // Poll every 100ms
 
+          console.log('[Stream] Started polling for session:', sessionId);
+
           // Wait for execution to complete
           const response = await executionPromise;
+          console.log('[Stream] Execution complete, response:', { content: response?.content?.substring(0, 50), tokensUsed: response?.tokensUsed });
 
           // Send any remaining events
           const finalEvents = await getNewEvents(sessionId, eventIndex);
+          console.log('[Stream] Final events count:', finalEvents.length);
           if (finalEvents.length > 0) {
             const sseData = formatSSEEvents(finalEvents);
             controller.enqueue(encoder.encode(sseData));
           }
 
-          // Save assistant response to database
-          if (assistantContent || response?.content) {
-            await createMessage({
-              organizationId: orgId,
-              sessionId,
-              role: 'assistant',
-              content: assistantContent || response.content,
-              metadata: {
-                tokensUsed: response?.tokensUsed,
-                cost: response?.cost,
-                finishReason: response?.finishReason,
-                provider,
-                model,
-              },
-            });
-
-            // Record usage metrics
-            await recordUsage({
-              organizationId: orgId,
-              metricName: 'messages_per_month',
-              quantity: 2, // 1 user message + 1 assistant response
-            });
-
-            if (response?.tokensUsed) {
-              await recordUsage({
-                organizationId: orgId,
-                metricName: 'tokens_per_month',
-                quantity: response.tokensUsed,
-                unit: 'tokens',
-              });
-            }
-          }
+          // The agent internally handles recording usage and saving the assistant message.
+          // We only need to record the initial user message usage here.
+          await recordUsage({
+            organizationId,
+            metricName: 'messages_per_month',
+            quantity: 1, // 1 user message
+          });
 
           // Clean up and close
           clearInterval(pollInterval);
-          controller.enqueue(encoder.encode('event: done\ndata: {}\n\n'));
           controller.close();
         } catch (error) {
           console.error('Stream execution error:', error);
-          const errorMessage =
-            error instanceof Error ? error.message : 'Unknown error';
-          controller.enqueue(
-            encoder.encode(
-              `event: error\ndata: ${JSON.stringify({ error: errorMessage })}\n\n`
-            )
-          );
           controller.close();
         }
       },
