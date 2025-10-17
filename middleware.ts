@@ -21,7 +21,9 @@ export default clerkMiddleware(async (auth, req) => {
   
   if (!isTestEnv) {
     // Run Arcjet protection
-    const decision = await aj.protect(req, {});
+    const decision = await aj.protect(req, {
+      ip: req.ip || req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1',
+    });
 
     // Check if request is blocked by Arcjet
     if (decision.isDenied()) {

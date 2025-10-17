@@ -5,8 +5,7 @@
  * Used for keyword-based document search in hybrid search scenarios.
  */
 
-// @ts-ignore - Upstash Search types may not be complete
-import Search from '@upstash/search';
+import { Search } from '@upstash/search';
 
 if (!process.env.UPSTASH_SEARCH_REST_URL) {
   throw new Error('UPSTASH_SEARCH_REST_URL is not defined');
@@ -16,11 +15,14 @@ if (!process.env.UPSTASH_SEARCH_REST_TOKEN) {
   throw new Error('UPSTASH_SEARCH_REST_TOKEN is not defined');
 }
 
-// Initialize Upstash Search index
-export const searchIndex = new Search({
+// Initialize Upstash Search client
+const searchClient = new Search({
   url: process.env.UPSTASH_SEARCH_REST_URL,
   token: process.env.UPSTASH_SEARCH_REST_TOKEN,
 });
+
+// Get the default index (using 'documents' as the index name)
+export const searchIndex = searchClient.index('documents');
 
 /**
  * Index a document for full-text search
@@ -38,7 +40,7 @@ export async function indexDocument(
 ) {
   return searchIndex.upsert({
     id,
-    data: text,
+    content: { text },
     metadata: metadata || {},
   });
 }
@@ -55,17 +57,16 @@ export async function searchDocuments(
     offset?: number;
   }
 ) {
-  const filters: Record<string, string> = options?.filters || {};
-
-  // Add org filter if provided
+  // Build filter string for orgId if provided
+  let filterString: string | undefined;
   if (options?.orgId) {
-    filters.orgId = options.orgId;
+    filterString = `metadata.orgId = '${options.orgId}'`;
   }
 
-  return searchIndex.search(query, {
-    filters: Object.keys(filters).length > 0 ? filters : undefined,
+  return searchIndex.search({
+    query,
+    filter: filterString,
     limit: options?.limit || 10,
-    offset: options?.offset || 0,
   });
 }
 
@@ -73,7 +74,7 @@ export async function searchDocuments(
  * Delete a document from the search index
  */
 export async function deleteDocument(id: string) {
-  return searchIndex.delete(id);
+  return searchIndex.delete([id]);
 }
 
 /**

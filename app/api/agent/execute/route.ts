@@ -45,7 +45,10 @@ export async function POST(request: NextRequest) {
 
     const decision = await ajApi
       .withRule(rateLimitRule)
-      .protect(request, {});
+      .protect(request, {
+        requested: 1,
+        ip: request.ip || request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1',
+      });
 
     if (decision.isDenied()) {
       if (decision.reason.isRateLimit()) {

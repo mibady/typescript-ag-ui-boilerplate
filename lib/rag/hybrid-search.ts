@@ -94,7 +94,7 @@ export async function hybridSearch(
 
     // Get all unique document IDs
     const allIds = new Set([
-      ...vectorResults.map((r) => r.id),
+      ...vectorResults.map((r: VectorSearchResult) => r.id),
       ...(textResults as any[]).map((r: any) => r.id),
     ]);
 
@@ -154,7 +154,7 @@ export async function hybridSearch(
 
     // Build final results
     const results: HybridSearchResult[] = chunks.map((chunk) => {
-      const vectorResult = vectorResults.find((v) => v.id === chunk.id);
+      const vectorResult = vectorResults.find((v: VectorSearchResult) => v.id === chunk.id);
       const textResult = (textResults as any[]).find((t: any) => t.id === chunk.id);
 
       return {

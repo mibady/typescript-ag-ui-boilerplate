@@ -58,7 +58,7 @@ describe('Checkout API - POST /api/billing/checkout', () => {
 
   describe('Authentication Tests', () => {
     it('should return 401 for unauthenticated users', async () => {
-      (auth as Mock).mockResolvedValue({ userId: null, orgId: null });
+      (auth as unknown as Mock).mockResolvedValue({ userId: null, orgId: null });
 
       mockRequest = new NextRequest('http://localhost:3000/api/billing/checkout', {
         method: 'POST',
@@ -73,7 +73,7 @@ describe('Checkout API - POST /api/billing/checkout', () => {
     });
 
     it('should return 401 when userId is missing', async () => {
-      (auth as Mock).mockResolvedValue({ userId: null, orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: null, orgId: 'org_123' });
 
       mockRequest = new NextRequest('http://localhost:3000/api/billing/checkout', {
         method: 'POST',
@@ -85,7 +85,7 @@ describe('Checkout API - POST /api/billing/checkout', () => {
     });
 
     it('should return 401 when orgId is missing', async () => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: null });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: null });
 
       mockRequest = new NextRequest('http://localhost:3000/api/billing/checkout', {
         method: 'POST',
@@ -99,7 +99,7 @@ describe('Checkout API - POST /api/billing/checkout', () => {
 
   describe('Input Validation Tests', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
     });
 
     it('should return 400 when planId is missing', async () => {
@@ -153,7 +153,7 @@ describe('Checkout API - POST /api/billing/checkout', () => {
 
   describe('Checkout Session Creation Tests', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
 
       // Mock customer lookup/creation
       mockStripe.customers.list.mockResolvedValue({
@@ -324,7 +324,7 @@ describe('Checkout API - POST /api/billing/checkout', () => {
 
   describe('Customer Management Tests', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
 
       const mockPlan = {
         id: 'plan_pro',
@@ -388,7 +388,7 @@ describe('Checkout API - POST /api/billing/checkout', () => {
 
   describe('Error Handling Tests', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
     });
 
     it('should return 500 when Stripe API fails', async () => {
@@ -434,7 +434,7 @@ describe('Checkout API - POST /api/billing/checkout', () => {
 
   describe('Response Format Tests', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
 
       const mockPlan = {
         id: 'plan_pro',

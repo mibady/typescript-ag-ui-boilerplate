@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.ag-ui.com)",
+      "WebSearch",
+      "Bash(npx tsc:*)",
+      "Bash(chmod:*)",
+      "Bash(test:*)",
+      "Bash(npm run validate:upstash:*)",
+      "Bash(npm run validate:ai:*)",
+      "Bash(npm run validate:supabase:*)",
+      "Bash(npm run validate:clerk:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtoc2Fhd2plbHJwcGdoZ2FuYnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxOTE1NzIsImV4cCI6MjA3NDc2NzU3Mn0.fzre915UPNHir9RZ9gi4eetLUmuL5RDmwO1pfhAk4_E\" \"https://khsaawjelrppghganbuu.supabase.co/rest/v1/\")",
+      "Bash(npm run validate:env:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run lint)",
+      "Bash(npm test:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm install styled-components)",
+      "Bash(npm install:*)",
+      "Bash(npm run build)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

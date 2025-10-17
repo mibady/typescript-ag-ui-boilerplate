@@ -39,7 +39,7 @@ describe('Subscription Status API - GET /api/billing/subscription', () => {
 
   describe('Authentication', () => {
     it('should return 401 when user is not authenticated', async () => {
-      (auth as Mock).mockResolvedValue({ userId: null, orgId: null });
+      (auth as unknown as Mock).mockResolvedValue({ userId: null, orgId: null });
 
       const request = new NextRequest(
         'http://localhost:3000/api/billing/subscription',
@@ -54,7 +54,7 @@ describe('Subscription Status API - GET /api/billing/subscription', () => {
     });
 
     it('should return 401 when userId is missing', async () => {
-      (auth as Mock).mockResolvedValue({ userId: null, orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: null, orgId: 'org_123' });
 
       const request = new NextRequest(
         'http://localhost:3000/api/billing/subscription',
@@ -66,7 +66,7 @@ describe('Subscription Status API - GET /api/billing/subscription', () => {
     });
 
     it('should return 401 when orgId is missing', async () => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: null });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: null });
 
       const request = new NextRequest(
         'http://localhost:3000/api/billing/subscription',
@@ -84,7 +84,7 @@ describe('Subscription Status API - GET /api/billing/subscription', () => {
 
   describe('Subscription Data Retrieval', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
     });
 
     it('should return subscription with plan, usage, and payments', async () => {
@@ -241,7 +241,7 @@ describe('Subscription Status API - GET /api/billing/subscription', () => {
 
   describe('Free Plan Default', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_free', orgId: 'org_free' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_free', orgId: 'org_free' });
     });
 
     it('should return free plan when no subscription exists', async () => {
@@ -317,7 +317,7 @@ describe('Subscription Status API - GET /api/billing/subscription', () => {
 
   describe('Trial Subscriptions', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_trial', orgId: 'org_trial' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_trial', orgId: 'org_trial' });
     });
 
     it('should return trial subscription with trial_end date', async () => {
@@ -370,7 +370,7 @@ describe('Subscription Status API - GET /api/billing/subscription', () => {
 
   describe('Canceled Subscriptions', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({
+      (auth as unknown as Mock).mockResolvedValue({
         userId: 'user_canceled',
         orgId: 'org_canceled',
       });
@@ -426,7 +426,7 @@ describe('Subscription Status API - GET /api/billing/subscription', () => {
 
   describe('Error Handling', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_error', orgId: 'org_error' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_error', orgId: 'org_error' });
     });
 
     it('should return 500 when database query fails', async () => {

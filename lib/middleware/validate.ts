@@ -124,7 +124,7 @@ export function withFullValidation<TBody, TQuery>(
       const bodyResult = bodySchema.safeParse(rawBody);
 
       if (!bodyResult.success) {
-        const errors = bodyResult.error.issues.map((err: { path: (string | number)[]; message: string; code: string }) => ({
+        const errors = bodyResult.error.issues.map((err) => ({
           path: err.path.join('.'),
           message: err.message,
           code: err.code,
@@ -151,7 +151,7 @@ export function withFullValidation<TBody, TQuery>(
       const queryResult = querySchema.safeParse(queryParams);
 
       if (!queryResult.success) {
-        const errors = queryResult.error.issues.map((err: { path: (string | number)[]; message: string; code: string }) => ({
+        const errors = queryResult.error.issues.map((err) => ({
           path: err.path.join('.'),
           message: err.message,
           code: err.code,

@@ -308,7 +308,7 @@ describe('Stripe Webhook Handler - POST /api/webhooks/stripe', () => {
     });
 
     it('should update subscription status in database', async () => {
-      const mockSubscription: Partial<Stripe.Subscription> = {
+      const mockSubscription: any = {
         id: 'sub_test_789',
         customer: 'cus_test_789',
         status: 'past_due',
@@ -524,7 +524,12 @@ describe('Stripe Webhook Handler - POST /api/webhooks/stripe', () => {
       const mockSubscription: Partial<Stripe.Subscription> = {
         id: 'sub_not_found',
         metadata: { organization_id: 'org_not_found' },
-        items: { data: [] } as Stripe.ApiList<Stripe.SubscriptionItem>,
+        items: {
+          object: 'list',
+          data: [],
+          has_more: false,
+          url: '',
+        } as Stripe.ApiList<Stripe.SubscriptionItem>,
       };
 
       const mockEvent = {
@@ -560,7 +565,7 @@ describe('Stripe Webhook Handler - POST /api/webhooks/stripe', () => {
     });
 
     it('should create payment record for successful invoice', async () => {
-      const mockInvoice: Partial<Stripe.Invoice> = {
+      const mockInvoice = {
         id: 'in_test_123',
         customer: 'cus_test_123',
         subscription: 'sub_test_123',
@@ -574,7 +579,7 @@ describe('Stripe Webhook Handler - POST /api/webhooks/stripe', () => {
         status_transitions: {
           paid_at: 1735689600,
         },
-      } as Stripe.Invoice;
+      } as unknown as Stripe.Invoice;
 
       const mockEvent = {
         id: 'evt_invoice_paid',
@@ -625,7 +630,7 @@ describe('Stripe Webhook Handler - POST /api/webhooks/stripe', () => {
     });
 
     it('should create payment record for failed invoice', async () => {
-      const mockInvoice: Partial<Stripe.Invoice> = {
+      const mockInvoice = {
         id: 'in_failed_123',
         customer: 'cus_test',
         subscription: 'sub_test',
@@ -634,7 +639,7 @@ describe('Stripe Webhook Handler - POST /api/webhooks/stripe', () => {
         metadata: { organization_id: 'org_failed' },
         payment_intent: 'pi_failed_123',
         description: 'Pro Plan - Monthly',
-      } as Stripe.Invoice;
+      } as unknown as Stripe.Invoice;
 
       const mockEvent = {
         id: 'evt_invoice_failed',

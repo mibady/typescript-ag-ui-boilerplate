@@ -57,7 +57,7 @@ describe('Customer Portal API - POST /api/billing/portal', () => {
 
   describe('Authentication', () => {
     it('should return 401 when user is not authenticated', async () => {
-      (auth as Mock).mockResolvedValue({ userId: null, orgId: null });
+      (auth as unknown as Mock).mockResolvedValue({ userId: null, orgId: null });
 
       const request = new NextRequest('http://localhost:3000/api/billing/portal', {
         method: 'POST',
@@ -71,7 +71,7 @@ describe('Customer Portal API - POST /api/billing/portal', () => {
     });
 
     it('should return 401 when userId is missing', async () => {
-      (auth as Mock).mockResolvedValue({ userId: null, orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: null, orgId: 'org_123' });
 
       const request = new NextRequest('http://localhost:3000/api/billing/portal', {
         method: 'POST',
@@ -82,7 +82,7 @@ describe('Customer Portal API - POST /api/billing/portal', () => {
     });
 
     it('should return 401 when orgId is missing', async () => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: null });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: null });
 
       const request = new NextRequest('http://localhost:3000/api/billing/portal', {
         method: 'POST',
@@ -99,7 +99,7 @@ describe('Customer Portal API - POST /api/billing/portal', () => {
 
   describe('Subscription Validation', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
     });
 
     it('should return 404 when subscription not found', async () => {
@@ -140,7 +140,7 @@ describe('Customer Portal API - POST /api/billing/portal', () => {
 
   describe('Portal Session Creation', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
     });
 
     it('should create portal session with correct customer ID', async () => {
@@ -225,7 +225,7 @@ describe('Customer Portal API - POST /api/billing/portal', () => {
 
   describe('Error Handling', () => {
     beforeEach(() => {
-      (auth as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
+      (auth as unknown as Mock).mockResolvedValue({ userId: 'user_123', orgId: 'org_123' });
     });
 
     it('should return 500 when Stripe API fails', async () => {

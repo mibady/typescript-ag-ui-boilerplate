@@ -90,7 +90,6 @@ export async function POST(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         console.log('[Stream Route] Stream started');
-        let assistantContent = '';
 
         try {
           // Save user message to database first

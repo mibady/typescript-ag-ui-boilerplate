@@ -75,7 +75,7 @@ export async function searchVectorSimilarity(
     );
 
     return results.map(result => ({
-      id: result.id,
+      id: String(result.id),
       score: result.score,
       metadata: result.metadata as any,
     }));

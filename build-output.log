@@ -1,0 +1,329 @@
+
+> typescript-ag-ui-boilerplate@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.33
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+./lib/upstash/search.ts
+Attempted import error: '@upstash/search' does not contain a default export (imported as 'UpstashSearch').
+
+Import trace for requested module:
+./lib/upstash/search.ts
+./lib/rag/hybrid-search.ts
+./app/api/rag/hybrid-search/route.ts
+
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./app/api/ag-ui/stream/route.ts
+11:3  Warning: Unexpected console statement.  no-console
+14:5  Warning: Unexpected console statement.  no-console
+23:7  Warning: Unexpected console statement.  no-console
+31:13  Warning: Unexpected console statement.  no-console
+40:17  Warning: Unexpected console statement.  no-console
+44:15  Warning: Unexpected console statement.  no-console
+71:9  Warning: Unexpected console statement.  no-console
+
+./app/api/agent/start/route.ts
+26:28  Warning: 'req' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./app/api/agent/stream/route.ts
+20:3  Warning: Unexpected console statement.  no-console
+24:5  Warning: Unexpected console statement.  no-console
+27:7  Warning: Unexpected console statement.  no-console
+37:5  Warning: Unexpected console statement.  no-console
+40:7  Warning: Unexpected console statement.  no-console
+45:7  Warning: Unexpected console statement.  no-console
+60:5  Warning: Unexpected console statement.  no-console
+88:5  Warning: Unexpected console statement.  no-console
+92:9  Warning: Unexpected console statement.  no-console
+127:17  Warning: Unexpected console statement.  no-console
+137:11  Warning: Unexpected console statement.  no-console
+141:11  Warning: Unexpected console statement.  no-console
+145:11  Warning: Unexpected console statement.  no-console
+
+./app/api/jobs/process-document/route.ts
+52:5  Warning: Unexpected console statement.  no-console
+82:5  Warning: Unexpected console statement.  no-console
+84:5  Warning: Unexpected console statement.  no-console
+87:5  Warning: Unexpected console statement.  no-console
+107:5  Warning: Unexpected console statement.  no-console
+131:5  Warning: Unexpected console statement.  no-console
+
+./app/api/jobs/send-email/route.ts
+47:5  Warning: Unexpected console statement.  no-console
+62:5  Warning: Unexpected console statement.  no-console
+85:67  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./app/api/rag/upload/route.ts
+118:7  Warning: Unexpected console statement.  no-console
+
+./components/agent-interaction.tsx
+69:11  Warning: Unexpected console statement.  no-console
+74:13  Warning: Unexpected console statement.  no-console
+112:13  Warning: Unexpected console statement.  no-console
+118:13  Warning: Unexpected console statement.  no-console
+136:11  Warning: Unexpected console statement.  no-console
+
+./components/chat/chat-interface.tsx
+38:10  Warning: 'currentMessageId' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+105:11  Warning: Unexpected console statement.  no-console
+109:43  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+117:45  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+124:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+140:43  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+153:11  Warning: Unexpected console statement.  no-console
+
+./components/dashboard/dashboard-header.tsx
+3:16  Warning: 'Menu' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/knowledge-base/document-list.tsx
+66:6  Warning: React Hook useEffect has a missing dependency: 'fetchDocuments'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./components/marketing/contact-form.tsx
+55:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/marketing/portable-text.tsx
+52:18  Warning: '_key' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./components/marketing/table-of-contents.tsx
+13:12  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+27:25  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./components/settings/api-keys-settings.tsx
+5:10  Warning: 'Input' is defined but never used.  @typescript-eslint/no-unused-vars
+6:10  Warning: 'Label' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./components/ui/use-toast.ts
+20:5  Warning: Unexpected console statement.  no-console
+
+./lib/agents/base-agent.ts
+155:5  Warning: 'onChunk' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+165:5  Warning: Unexpected console statement.  no-console
+176:7  Warning: Unexpected console statement.  no-console
+179:7  Warning: Unexpected console statement.  no-console
+183:7  Warning: Unexpected console statement.  no-console
+203:7  Warning: Unexpected console statement.  no-console
+206:9  Warning: Unexpected console statement.  no-console
+216:7  Warning: Unexpected console statement.  no-console
+226:7  Warning: Unexpected console statement.  no-console
+232:7  Warning: Unexpected console statement.  no-console
+240:7  Warning: Unexpected console statement.  no-console
+
+./lib/agents/rag-agent.ts
+11:15  Warning: 'CoreMessage' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./lib/agents/tool-agent.ts
+8:44  Warning: 'AgentExecutionContext' is defined but never used.  @typescript-eslint/no-unused-vars
+38:62  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+53:66  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+66:60  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+84:14  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+104:14  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/agui-events-creators.ts
+56:90  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+63:8  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/agui-events.ts
+104:3  Warning: 'metadata' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+104:14  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+115:10  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+155:26  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+193:3  Warning: 'role' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+207:3  Warning: Unexpected console statement.  no-console
+
+./lib/arcjet.ts
+166:37  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+173:46  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/db/messages.ts
+22:29  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/db/sessions.ts
+22:29  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+27:29  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/mcp/server.ts
+22:3  Warning: Unexpected console statement.  no-console
+61:3  Warning: Unexpected console statement.  no-console
+68:3  Warning: Unexpected console statement.  no-console
+
+./lib/mcp/tools/email-send.ts
+88:27  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/mcp/tools/search.ts
+90:76  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/mcp/tools.ts
+25:3  Warning: Unexpected console statement.  no-console
+34:5  Warning: Unexpected console statement.  no-console
+86:39  Warning: 'name' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+109:3  Warning: Unexpected console statement.  no-console
+118:3  Warning: Unexpected console statement.  no-console
+
+./lib/mcp-init.ts
+14:5  Warning: Unexpected console statement.  no-console
+21:5  Warning: Unexpected console statement.  no-console
+
+./lib/rag/hybrid-search.ts
+91:21  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+91:45  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+98:26  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+98:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+158:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+158:58  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+258:5  Warning: Unexpected console statement.  no-console
+288:5  Warning: Unexpected console statement.  no-console
+
+./lib/rag/search.ts
+121:50  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+145:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/rag/vector-search.ts
+20:20  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+50:5  Warning: Unexpected console statement.  no-console
+80:36  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+108:5  Warning: 'textLimit' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+207:5  Warning: Unexpected console statement.  no-console
+
+./lib/redis.ts
+71:5  Warning: Unexpected console statement.  no-console
+76:5  Warning: Unexpected console statement.  no-console
+82:3  Warning: Unexpected console statement.  no-console
+85:26  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+91:3  Warning: Unexpected console statement.  no-console
+117:5  Warning: Unexpected console statement.  no-console
+122:3  Warning: Unexpected console statement.  no-console
+124:3  Warning: Unexpected console statement.  no-console
+
+./lib/sanity-client.ts
+34:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+40:10  Warning: '_file' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./lib/sanity-queries.ts
+38:10  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+55:12  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/sentry.ts
+49:28  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+67:28  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+83:4  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+94:25  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+122:65  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+134:30  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/stores/chat-store.ts
+12:15  Warning: 'CoreMessage' is defined but never used.  @typescript-eslint/no-unused-vars
+204:43  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+213:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+218:43  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+235:41  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/stores/document-store.ts
+100:11  Warning: 'get' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./lib/stripe/setup.ts
+15:28  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+108:15  Warning: 'key' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+109:5  Warning: Unexpected console statement.  no-console
+157:5  Warning: Unexpected console statement.  no-console
+200:5  Warning: Unexpected console statement.  no-console
+216:15  Warning: 'key' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+238:16  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+250:16  Warning: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+274:7  Warning: Unexpected console statement.  no-console
+
+./lib/upstash/qstash.ts
+22:42  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+43:39  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+88:24  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+113:27  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+132:3  Warning: 'signature' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+133:3  Warning: 'body' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./lib/upstash/search.ts
+10:34  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+37:20  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+87:31  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/upstash/vector.ts
+35:20  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+85:5  Warning: Unexpected console statement.  no-console
+
+./src/__tests__/api/billing/checkout.test.ts
+46:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+52:81  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/__tests__/api/billing/portal.test.ts
+41:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+47:81  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/__tests__/api/webhooks/stripe.test.ts
+49:19  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+56:81  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+311:31  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/__tests__/e2e/api.spec.ts
+230:9  Warning: Unexpected console statement.  no-console
+238:9  Warning: Unexpected console statement.  no-console
+
+./src/__tests__/e2e/auth.spec.ts
+296:58  Warning: 'page' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+296:64  Warning: 'context' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+383:49  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/__tests__/e2e/billing.spec.ts
+331:9  Warning: Unexpected console statement.  no-console
+333:9  Warning: Unexpected console statement.  no-console
+501:79  Warning: 'page' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/__tests__/e2e/global-setup.ts
+15:28  Warning: 'config' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+16:3  Warning: Unexpected console statement.  no-console
+43:3  Warning: Unexpected console statement.  no-console
+47:3  Warning: Unexpected console statement.  no-console
+59:5  Warning: Unexpected console statement.  no-console
+69:3  Warning: Unexpected console statement.  no-console
+75:5  Warning: Unexpected console statement.  no-console
+82:3  Warning: Unexpected console statement.  no-console
+94:9  Warning: Unexpected console statement.  no-console
+96:9  Warning: Unexpected console statement.  no-console
+98:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+103:3  Warning: Unexpected console statement.  no-console
+
+./src/__tests__/e2e/global-teardown.ts
+13:3  Warning: Unexpected console statement.  no-console
+17:3  Warning: Unexpected console statement.  no-console
+25:3  Warning: Unexpected console statement.  no-console
+
+./src/__tests__/e2e/rag.spec.ts
+2:8  Warning: 'fs' is defined but never used.  @typescript-eslint/no-unused-vars
+3:8  Warning: 'path' is defined but never used.  @typescript-eslint/no-unused-vars
+477:56  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+561:13  Warning: 'data' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/__tests__/unit/agui-events.test.ts
+127:26  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+166:26  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+292:29  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+332:61  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+Failed to compile.
+
+./lib/upstash/search.ts:8:1
+Type error: Unused '@ts-expect-error' directive.
+
+[0m [90m  6 |[39m [90m */[39m[0m
+[0m [90m  7 |[39m[0m
+[0m[31m[1m>[22m[39m[90m  8 |[39m [90m// @ts-expect-error - Upstash Search package structure[39m[0m
+[0m [90m    |[39m [31m[1m^[22m[39m[0m
+[0m [90m  9 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mUpstashSearch[39m [36mfrom[39m [32m'@upstash/search'[39m[33m;[39m[0m
+[0m [90m 10 |[39m [36mconst[39m [33mSearch[39m [33m=[39m ([33mUpstashSearch[39m [36mas[39m any)[33m.[39m[36mdefault[39m [33m||[39m [33mUpstashSearch[39m[33m;[39m[0m
+[0m [90m 11 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

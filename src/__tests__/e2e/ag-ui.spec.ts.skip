@@ -59,17 +59,14 @@ test.describe('AG-UI SDK Integration', () => {
             messages: [
               {
                 role: 'user',
-                content: [{ type: 'text', text: 'Say hello in one word' }],
+                content: 'Say hello in one word',
               },
             ],
-            context: [
-              {
-                type: 'provider_config',
-                provider: 'openai',
-                modelName: 'gpt-3.5-turbo',
-                temperature: 0.7,
-              },
-            ],
+            context: {
+              provider: 'openai',
+              modelName: 'gpt-3.5-turbo',
+              temperature: 0.7,
+            },
           });
 
           await new Promise<void>((resolve, reject) => {
